@@ -13,7 +13,7 @@ async function fun() {
 
         //Example query to show connection to database
         const data = await con.execute(
-            'SELECT * FROM DJIndex',
+            'SELECT COUNT(*) FROM "B.NAKASONE"."COVIDDeathReport"',
         );
         console.log(data.rows);
 

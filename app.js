@@ -1,4 +1,5 @@
 const express = require('express');
+const oracledb = require('oracledb');
 const http = require('http');
 const bcrypt = require('bcrypt');
 const path = require("path");
@@ -16,6 +17,38 @@ app.get('/',(req,res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
 });
 
+async function connectToDatabase() {
+    try {
+        const con = await oracledb.getConnection({
+            user: "abigail.lin",
+            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
+            connectString: "oracle.cise.ufl.edu:1521/orcl"
+        });
+        return con;
+    } catch (error) {
+        console.error("Error connecting to database:", error);
+        throw error;
+    }
+}
+
+app.get('/data', async (req, res) => {
+    try {
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
+            FROM "S.KARANTH"."LABORFORCE" 
+            WHERE (LYear = 2020 AND LMonth >= 8)
+               OR (LYear > 2020 AND LYear < 2022)
+               OR (LYear = 2022 AND LMonth <= 3)
+            GROUP BY StateOrArea, LYear, LMonth
+            ORDER BY LYear, LMonth`
+        );
+        await con.close();
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 app.post('/register', async (req, res) => {
     try{

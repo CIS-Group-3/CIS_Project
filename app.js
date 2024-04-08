@@ -33,18 +33,38 @@ async function connectToDatabase() {
 
 app.get('/data', async (req, res) => {
     try {
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        var statesString = req.query.states;
+
+        var states = JSON.parse(statesString);
+
+        console.log("states are: "+states);
+
+        var whereClause = `StateOrArea = '${states[0]}'`; 
+        console.log(whereClause);
+
+        /*
+        if (states.length > 0) {
+            whereClause = `(${whereClause}) AND `;
+        }
+        */
+
         const con = await connectToDatabase();
         const result = await con.execute(
             `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
             FROM "S.KARANTH"."LABORFORCE" 
-            WHERE (LYear = 2020 AND LMonth >= 8)
-               OR (LYear > 2020 AND LYear < 2022)
-               OR (LYear = 2022 AND LMonth <= 3)
+            WHERE (${whereClause})
+               AND ((LYear = ${startYear} AND LMonth >= ${startMonth})
+               OR (LYear > ${startYear} AND LYear < ${endYear})
+               OR (LYear = ${endYear} AND LMonth <= ${endMonth}))
             GROUP BY StateOrArea, LYear, LMonth
             ORDER BY LYear, LMonth`
         );
         await con.close();
-        res.json(result.rows);
+        res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

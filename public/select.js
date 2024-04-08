@@ -34,7 +34,8 @@
     var selected_color=me.selected_color?me.selected_color:map.mapdata.main_settings.state_hover_color;
     var selected=[]; 
     var max=me.max?me.max:false;
-    var original_mapdata=JSON.parse(JSON.stringify(map.mapdata));
+    var original_mapdata=JSON.parse(JSON.stringify(map.mapdata));  
+
     var main_settings=map.mapdata.main_settings;
     
     function check_mapdata(state){ //make sure a color exists for each state
@@ -59,6 +60,7 @@
         var first=selected[0];
         me.deselect(first);
       }      
+      
     }
     
     var select=function(state){
@@ -69,7 +71,7 @@
         map.mapdata.state_specific[state].color=me.selected_color;
         selected.push(state);
         done(state);
-      }      
+      }   
     }
     
     var select_all=function(){
@@ -97,7 +99,7 @@
         var evt = e || w.event;
         var length=me.selected.length;
         var index=me.selected.indexOf(state);  
-        alert("hello what");
+        alert("this part doesnt trigger idk");
         var last_state=me.selected[length-1];
         if (length == 0){
             me.select(state);
@@ -118,7 +120,16 @@
         }        
       }
       else{ //select on click
-        alert("the state is:" + state);
+        //console.log(original_mapdata.state_specific[state].name);
+        //add to selected states div on htmlpage
+        //console.log(document.getElementById('statesSelected').innerHTML);
+        if (document.getElementById('statesSelected').innerHTML != "States selected: "){
+          document.getElementById('statesSelected').innerHTML += ", "
+        }
+        document.getElementById('statesSelected').innerHTML += original_mapdata.state_specific[state].name;
+
+        writeSharedStates(original_mapdata.state_specific[state].name);
+
         var index=selected.indexOf(state);   
         if (index > -1){ //deselect state
           deselect(state);

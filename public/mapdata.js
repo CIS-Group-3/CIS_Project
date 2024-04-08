@@ -16,20 +16,7 @@ var simplemaps_usmap_mapdata={
     all_states_inactive: "no",
     all_states_zoomable: "no",
     
-		//Location defaults
-		location_description: "Store closest to you!",
-    location_color: "#FF0067",
-    location_opacity: 0.8,
-    location_hover_opacity: 1,
-    location_url: "",
-    location_size: 25,
-    location_type: "square",
-    location_image_source: "frog.png",
-    location_border_color: "#FFFFFF",
-    location_border: 2,
-    location_hover_border: 2.5,
-    all_locations_inactive: "no",
-    all_locations_hidden: "no",
+
     
 		//Label defaults
 		label_color: "#d5ddec",

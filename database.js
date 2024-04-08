@@ -22,7 +22,7 @@ async function fun() {
             GROUP BY StateOrArea, LYear, LMonth
             ORDER BY LYear, LMonth`,
         );
-        console.log(data.rows);
+        console.log(data);
 
     } catch (err) {
         console.error(err);

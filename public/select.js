@@ -51,7 +51,7 @@
           selected.splice(index, 1);   
           check_mapdata(state);
           map.mapdata.state_specific[state].color=original_mapdata.state_specific[state].color;
-        }    
+        }   
         done(state);
     }
     
@@ -120,22 +120,22 @@
         }        
       }
       else{ //select on click
-        //console.log(original_mapdata.state_specific[state].name);
-        //add to selected states div on htmlpage
-        //console.log(document.getElementById('statesSelected').innerHTML);
-        if (document.getElementById('statesSelected').innerHTML != "States selected: "){
-          document.getElementById('statesSelected').innerHTML += ", "
-        }
-        document.getElementById('statesSelected').innerHTML += original_mapdata.state_specific[state].name;
-
-        writeSharedStates(original_mapdata.state_specific[state].name);
-
+        
         var index=selected.indexOf(state);   
         if (index > -1){ //deselect state
           deselect(state);
+
+          removeSharedStates(original_mapdata.state_specific[state].name); 
         }
         else{ //select state
           select(state);
+          
+          if (document.getElementById('statesSelected').innerHTML != "States selected: "){
+            document.getElementById('statesSelected').innerHTML += ", "
+          }
+          document.getElementById('statesSelected').innerHTML += original_mapdata.state_specific[state].name;
+  
+          writeSharedStates(original_mapdata.state_specific[state].name);
         }
       }
     }

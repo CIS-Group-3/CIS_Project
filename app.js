@@ -43,26 +43,35 @@ app.get('/data', async (req, res) => {
 
         console.log("states are: "+states);
 
-        var whereClause = `StateOrArea = '${states[0]}'`; 
-        console.log(whereClause);
+        whereClause = ``; 
 
-        /*
-        if (states.length > 0) {
-            whereClause = `(${whereClause}) AND `;
+        if (Object.keys(states).length >= 1){
+            whereClause = `(StateOrArea = '${states[0]}'`;
         }
-        */
+        
+        for (i =1; i<Object.keys(states).length; i++){
+            whereClause += ` OR `;
+            whereClause += `StateOrArea = '${states[i]}'`; 
+        }
+
+        if (Object.keys(states).length >= 1){
+            whereClause += `) AND `;
+        }
+
+        whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+        OR (LYear > ${startYear} AND LYear < ${endYear})
+        OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        console.log("where: " +whereClause);
 
         const con = await connectToDatabase();
         const result = await con.execute(
             `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
             FROM "S.KARANTH"."LABORFORCE" 
             WHERE (${whereClause})
-               AND ((LYear = ${startYear} AND LMonth >= ${startMonth})
-               OR (LYear > ${startYear} AND LYear < ${endYear})
-               OR (LYear = ${endYear} AND LMonth <= ${endMonth}))
             GROUP BY StateOrArea, LYear, LMonth
-            ORDER BY LYear, LMonth`
+            ORDER BY StateOrArea, LYear, LMonth`
         );
+
         await con.close();
         res.json(result);
     } catch (error) {

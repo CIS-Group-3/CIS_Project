@@ -72,7 +72,8 @@
                         var year = selectedDate.getFullYear();
                         console.log("month: "+month +"year: "+year);
                     */
-                    if ($('#endDatePicker').datepicker('getDate') != null){
+                    if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.size()>=1){
+                            console.log("ensure that state selected and end date also set.")
                             fillChart();
                         }
                     });
@@ -89,7 +90,8 @@
                         var year = selectedDate.getFullYear();
                         console.log("month: "+month +"year: "+year);
                     */
-                        if ($('#startDatePicker').datepicker('getDate') != null){
+                        if ($('#startDatePicker').datepicker('getDate') != null && sharedStates.size()>=1){
+                            console.log("ensure that state selected and start date also set.")
                             fillChart();
                         }
                     });
@@ -97,18 +99,8 @@
 
         //show chart
         async function fillChart(){
-            var myChart = document.getElementById('myChart').getContext('2d');
-
-                var months = [];
-                var years = [];
-                /*
-                for (var year = 2000; year <= 2022; year++) {
-                    for (var month = 1; month <= 12; month++) {
-                        months.push(month);
-                        years.push(year);
-                    }
-                }
-                */
+                var placeholder = document.getElementById('myChart');
+                myChart = placeholder.getContext('2d');
 
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
@@ -120,40 +112,57 @@
                 endYear = endDate.getFullYear();
 
                 await fetchData();
+
+                placeholder.style.display = 'block'; //make chart visible if needed.
+
+
+                let datasets = {}; //groups data by state
+                var uniqueMonths = [];
                 
-                var myData = [];
                 data.rows.forEach(row => {
-                    months.push(row[2]);
-                    years.push(row[1]);
-                    myData.push(row[3]);
+                    const state = row[0];
+                    const year = row[1];
+                    const month = row[2];
+                    const rate = row[3];
+
+                    const monthyear = `${month}/${year}`;
+                    if (!uniqueMonths.includes(monthyear)) {
+                        uniqueMonths.push(monthyear);
+                    }
+
+
+                    if (!datasets[state]) {
+                        datasets[state] = {
+                        label: state,
+                        data: [],
+                        backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
+                        borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
+                        borderWidth: 2
+                        };
+                    }
+
+                    datasets[state].data.push({
+                        x: `${month}/${year}`,
+                        y: rate
+                    });
                 });
                 
-                console.log(myData);
-                console.log(years);
+                const datasetsArray = Object.values(datasets);
 
                 var lineChart = new Chart(myChart, {
                     type: 'line',
                     data:{
-                        labels: months.map((month, index) => `${month}/${years[index]}`),
-                        datasets:[{
-                            label: data.metaData[3].name,
-                            data: myData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)', // Fill color
-                            borderColor: 'rgba(54, 162, 235, 1)', // Line color
-                            borderWidth: 2
-                        }],
-                        
+                        labels: uniqueMonths,
+                        datasets:datasetsArray
                     },
                     options:{}
-                });
-                
+                });                
         }
         
 
         // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                //console.log("ran now");
                 sharedString = JSON.stringify(sharedStates);
                 const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}`;
 
@@ -170,11 +179,29 @@
         function writeSharedStates(state){
             sharedStates.push(state);
             //console.log("shared: " +sharedStates);
+            fillChart();
         }
 
+        function removeSharedStates(state){
+            //console.log("sharedstates: "+sharedStates);
 
-        // Fetch data when the page loads
-        //window.onload = fetchData;
+            const index = sharedStates.indexOf(state);
+            //console.log("index:"+index);
+            if (index != -1) {
+                sharedStates.splice(index, 1);
+            }
+            //console.log("sharedstates: "+sharedStates);
+            
+            if (sharedStates.length >=1){
+                fillChart();
+            }
+            else{ 
+                //console.log("chart should be empty");
+                var myChart = document.getElementById('myChart');
+                myChart.style.display = 'none';
+            }
+        }
+
     </script>
 </body>
 

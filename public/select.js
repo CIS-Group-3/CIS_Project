@@ -129,12 +129,7 @@
         }
         else{ //select state
           select(state);
-          
-          if (document.getElementById('statesSelected').innerHTML != "States selected: "){
-            document.getElementById('statesSelected').innerHTML += ", "
-          }
-          document.getElementById('statesSelected').innerHTML += original_mapdata.state_specific[state].name;
-  
+            
           writeSharedStates(original_mapdata.state_specific[state].name);
         }
       }

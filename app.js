@@ -58,9 +58,16 @@ app.get('/data', async (req, res) => {
             whereClause += `) AND `;
         }
 
-        whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
-        OR (LYear > ${startYear} AND LYear < ${endYear})
-        OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        
+        if (startYear < endYear){
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+            OR (LYear > ${startYear} AND LYear < ${endYear})
+            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        }
+        else{
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
+        }
+
         console.log("where: " +whereClause);
 
         const con = await connectToDatabase();

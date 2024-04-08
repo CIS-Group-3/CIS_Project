@@ -20,7 +20,7 @@
 <body>
     <div class="container">
         <div id="option-holder">
-            <div id="instructions">instructions</div>
+            <div id="instructions">Select state(s) and time range to view the chart.</div>
             <div id="dateArea">                
                 <div id="startDate">
                     select start date:
@@ -59,6 +59,11 @@
 
         var sharedStates=[];
 
+        var placeholder = document.getElementById('myChart');
+        var myChart = placeholder.getContext('2d');
+
+        var lineChart;
+
         $(document).ready(function(){
             $('#startDatePicker').datepicker({
                 format: "MM yyyy",
@@ -66,15 +71,19 @@
                 minViewMode: "months",
                 autoclose: true,
                 }).on('changeDate', function(e){
-                    /*
-                        var selectedDate = e.date;
-                        var month = selectedDate.getMonth() + 1; // Month is zero-based
-                        var year = selectedDate.getFullYear();
-                        console.log("month: "+month +"year: "+year);
-                    */
-                    if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.size()>=1){
-                            console.log("ensure that state selected and end date also set.")
-                            fillChart();
+                        if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.length >=1){
+
+                            var startDate = $('#startDatePicker').datepicker('getDate');
+                            var endDate = $('#endDatePicker').datepicker('getDate');
+                            if (startDate >= endDate) {
+                                alert("Start date must be before end date.");
+                                // Reset the start date to the previous value
+                                $(this).val('');
+                            } else {
+                                if (sharedStates.length >=1){ //state(s) selected
+                                    fillChart();
+                                }
+                            }
                         }
                     });
                 
@@ -84,24 +93,26 @@
                 minViewMode: "months",
                 autoclose: true
                 }).on('changeDate', function(e){
-                    /*
-                        var selectedDate = e.date;
-                        var month = selectedDate.getMonth() + 1; // Month is zero-based
-                        var year = selectedDate.getFullYear();
-                        console.log("month: "+month +"year: "+year);
-                    */
-                        if ($('#startDatePicker').datepicker('getDate') != null && sharedStates.size()>=1){
-                            console.log("ensure that state selected and start date also set.")
-                            fillChart();
+                        if ($('#startDatePicker').datepicker('getDate') != null){
+
+                            var startDate = $('#startDatePicker').datepicker('getDate');
+                            var endDate = $('#endDatePicker').datepicker('getDate');
+                            if (startDate >= endDate) {
+                                alert("Start date must be before end date.");
+                                // Reset the start date to the previous value
+                                $(this).val('');
+                            } else {
+                                if (sharedStates.length >=1){ //state(s) selected
+                                    fillChart();
+                                }
+                            }
                         }
                     });
         });
 
         //show chart
         async function fillChart(){
-                var placeholder = document.getElementById('myChart');
-                myChart = placeholder.getContext('2d');
-
+            try{
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
                 //console.log("date: "+startDate.getMonth());
@@ -149,14 +160,26 @@
                 
                 const datasetsArray = Object.values(datasets);
 
-                var lineChart = new Chart(myChart, {
-                    type: 'line',
-                    data:{
-                        labels: uniqueMonths,
-                        datasets:datasetsArray
-                    },
-                    options:{}
-                });                
+                if (lineChart) {
+                    // Update chart data and options
+                    lineChart.data.labels = uniqueMonths;
+                    lineChart.data.datasets = datasetsArray;
+                    lineChart.update();
+                } else {
+                    // Create a new chart
+                    lineChart = new Chart(myChart, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueMonths,
+                            datasets: datasetsArray
+                        },
+                        options: {elements:{point:{radius: 0}}}  //remove data point circles
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error filling chart:', error);
+            }               
         }
         
 
@@ -179,6 +202,16 @@
         function writeSharedStates(state){
             sharedStates.push(state);
             //console.log("shared: " +sharedStates);
+            
+            document.getElementById('statesSelected').innerHTML = "States selected: "
+            if (sharedStates.length >=1){
+                for(i=0;i<sharedStates.length;i++){
+                    document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                    if (i<sharedStates.length-1){
+                        document.getElementById('statesSelected').innerHTML += `,`;
+                    }
+                }
+            }
             fillChart();
         }
 
@@ -191,14 +224,23 @@
                 sharedStates.splice(index, 1);
             }
             //console.log("sharedstates: "+sharedStates);
+
+            document.getElementById('statesSelected').innerHTML = "States selected: "
+            if (sharedStates.length >=1){
+                for(i=0;i<sharedStates.length;i++){
+                    document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                    if (i<sharedStates.length-1){
+                        document.getElementById('statesSelected').innerHTML += `,`;
+                    }
+                }
+            }
             
             if (sharedStates.length >=1){
                 fillChart();
             }
             else{ 
                 //console.log("chart should be empty");
-                var myChart = document.getElementById('myChart');
-                myChart.style.display = 'none';
+                placeholder.style.display = 'none';
             }
         }
 

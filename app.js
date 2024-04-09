@@ -1,4 +1,5 @@
 const express = require('express');
+const oracledb = require('oracledb');
 const http = require('http');
 const bcrypt = require('bcrypt');
 const path = require("path");
@@ -16,6 +17,74 @@ app.get('/',(req,res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
 });
 
+async function connectToDatabase() {
+    try {
+        const con = await oracledb.getConnection({
+            user: "abigail.lin",
+            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
+            connectString: "oracle.cise.ufl.edu:1521/orcl"
+        });
+        return con;
+    } catch (error) {
+        console.error("Error connecting to database:", error);
+        throw error;
+    }
+}
+
+app.get('/data', async (req, res) => {
+    try {
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        var statesString = req.query.states;
+
+        var states = JSON.parse(statesString);
+
+        console.log("states are: "+states);
+
+        whereClause = ``; 
+
+        if (Object.keys(states).length >= 1){
+            whereClause = `(StateOrArea = '${states[0]}'`;
+        }
+        
+        for (i =1; i<Object.keys(states).length; i++){
+            whereClause += ` OR `;
+            whereClause += `StateOrArea = '${states[i]}'`; 
+        }
+
+        if (Object.keys(states).length >= 1){
+            whereClause += `) AND `;
+        }
+
+        
+        if (startYear < endYear){
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+            OR (LYear > ${startYear} AND LYear < ${endYear})
+            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        }
+        else{
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
+        }
+
+        console.log("where: " +whereClause);
+
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
+            FROM "S.KARANTH"."LABORFORCE" 
+            WHERE (${whereClause})
+            GROUP BY StateOrArea, LYear, LMonth
+            ORDER BY StateOrArea, LYear, LMonth`
+        );
+
+        await con.close();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 app.post('/register', async (req, res) => {
     try{

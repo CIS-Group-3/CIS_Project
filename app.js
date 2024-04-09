@@ -1,4 +1,5 @@
 const express = require('express');
+const oracledb = require('oracledb');
 const http = require('http');
 const bcrypt = require('bcrypt');
 const path = require("path");
@@ -16,6 +17,51 @@ app.get('/',(req,res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
 });
 
+async function connectToDatabase() {
+    try {
+        const con = await oracledb.getConnection({
+            user: "abigail.lin",
+            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
+            connectString: "oracle.cise.ufl.edu:1521/orcl"
+        });
+        return con;
+    } catch (error) {
+        console.error("Error connecting to database:", error);
+        throw error;
+    }
+}
+
+app.get('/data', async (req, res) => {
+    try {
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
+            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment), 2) as "USAvgUnemployment" 
+            FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
+            (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
+            "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
+            WHERE lmonth = monthocc AND lyear = yearocc ORDER BY lyear, lmonth`,
+        );
+        await con.close();
+        res.json(result.rows);
+        console.log(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
 
 app.post('/register', async (req, res) => {
     try{
@@ -69,7 +115,6 @@ app.post('/login', async (req, res) => {
         res.send("Internal server error");
     }
 });
-
 
 server.listen(3000, function(){
     console.log("server is listening on port: 3000");

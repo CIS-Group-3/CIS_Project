@@ -1,0 +1,79 @@
+<!-- https://youtu.be/sE08f4iuOhA?si=ZkdT7F_Qt1G52vjO -->
+<!DOCTYPE html>
+<html lang="en">
+
+<!--user input-->
+<body align="right">
+    <header>
+        <h1>User input</h1>
+    </header>
+    <form action = "/data" method ="POST">
+        <fieldset>
+            <label>Start Date</label>
+            <input type ="text" id = 'StartDate' name="StartDate" placeholder="01/01/2020" required>
+            <br><br>
+            <label>End Date</label>
+            <input type ="text" id = 'EndDate' name="EndDate" placeholder="01/01/2023" required>
+            <br><br>
+            <button type ="submit">Submit</button>
+        </fieldset>
+    </form>
+</body>
+
+<!--components for chart-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>Chart</title>
+</head>
+<!--components for map-->
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Map</title>
+    <script src="mapdata.js"></script>
+    <script src="usmap.js"></script>
+    <script src="select.js"></script>
+</head>
+<!--map displayed-->
+<body>
+	<div>
+		<h1>USA Map</h1>
+		<div id="map"></div>
+	</div>
+</body>
+<!--chart displayed-->
+<body>
+    <div class="container">
+        <h1>Chart</h1>
+        <canvas id ="myChart"></canvas>
+    </div>
+    <script>
+        var myChart = document.getElementById('myChart').getContext('2d');
+
+        var barChart = new Chart(myChart, {
+            type: 'bar',
+            data:{
+                labels:['AAA', 'Worcester', 'Springfield', 'Lowell', 'Cambridge', 'New Bedford'],
+                datasets:[{
+                    label: 'Population',
+                    data: [
+                        617594,
+                        181045,
+                        153060,
+                        106519,
+                        105162,
+                        95072
+                    ]
+                }, 
+            
+            ]
+            },
+            options:{}
+        });
+    </script>
+</body>
+</html>

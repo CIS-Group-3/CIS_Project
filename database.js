@@ -1,6 +1,6 @@
 const oracledb = require('oracledb');
 
-async function QueryOne(userYear, userMonth, userStates, userAgeRange) {
+async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth, userStates, userAgeRange) {
     let con;
 
     try {
@@ -16,17 +16,24 @@ async function QueryOne(userYear, userMonth, userStates, userAgeRange) {
         const query = userAgeRange ?
             `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
-            WHERE YEARCOVID = :year AND MONTHCOVID = :month AND StateName IN (${statePlaceholders}) AND AgeRange = :ageRange
+            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
+                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
+                AND StateName IN (${statePlaceholders}) 
+                AND AgeRange = :ageRange
             GROUP BY StateName, AgeRange 
             ORDER BY StateName, AgeRange` :
             `SELECT StateName, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
-            WHERE YEARCOVID = :year AND MONTHCOVID = :month AND StateName IN (${statePlaceholders})
+            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
+                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
+                AND StateName IN (${statePlaceholders})
             GROUP BY StateName`;
 
         const bindVars = {
-            year: userYear,
-            month: userMonth,
+            startYear: userStartYear,
+            startMonth: userStartMonth,
+            endYear: userEndYear,
+            endMonth: userEndMonth,
             ...(userAgeRange && { ageRange: userAgeRange }) // Includes ageRange in bindVars only if it's provided
         };
         
@@ -43,14 +50,16 @@ async function QueryOne(userYear, userMonth, userStates, userAgeRange) {
     }
 }
 
-const userYear = parseInt(process.argv[2], 10); // The third command line argument
-const userMonth = parseInt(process.argv[3], 10); // The fourth command line argument
-const userStatesInput = process.argv[4]; // The fifth command line argument
+const userStartYear = parseInt(process.argv[2], 10); // The third command line argument
+const userStartMonth = parseInt(process.argv[3], 10); // The fourth command line argument
+const userEndYear = parseInt(process.argv[4], 10); // The fifth command line argument
+const userEndMonth = parseInt(process.argv[5], 10); // The sixth command line argument
+const userStatesInput = process.argv[6]; // The seventh command line argument
 const userStates = userStatesInput.split(',');
-const userAgeRange = process.argv[5]; // The sixth command line argument (optional depending on input)
+const userAgeRange = process.argv[7]; // The eigth command line argument (optional depending on input)
 
-if (!isNaN(userYear) && !isNaN(userMonth) && userStates.length > 0) {
-    QueryOne(userYear, userMonth, userStates, userAgeRange);
+if (!isNaN(userStartYear) && !isNaN(userStartMonth) && !isNaN(userEndYear) && !isNaN(userEndMonth) && userStates.length > 0) {
+    QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth, userStates, userAgeRange);
 } else {
     console.error('Please provide valid integers for year and month, and at least one state.');
 }

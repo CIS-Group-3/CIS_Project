@@ -8,10 +8,10 @@ const users = require('./data').userDB;
 
 const app = express();
 const server = http.createServer(app);
+let tuples; 
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'./public')));
-
 
 app.get('/',(req,res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
@@ -31,8 +31,36 @@ async function connectToDatabase() {
     }
 }
 
-app.get('/data', async (req, res) => {
+let startMonth;
+let startYear;
+let endMonth; 
+let endYear;
+
+app.post('/data', async (req, res) => {
+    try{
+        startMonth = req.body.StartMonth;
+        startYear = req.body.StartYear;
+        endMonth = req.body.EndMonth;
+        endYear = req.body.EndYear;
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+
+app.get('/individualpage', async (req, res) => {
     try {
+    
+        if (startYear < endYear){
+            whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+            OR (LYear > ${startYear} AND LYear < ${endYear})
+            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        }
+        else{
+            whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
+        }
+
         const con = await connectToDatabase();
         const result = await con.execute(
             `SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
@@ -40,8 +68,10 @@ app.get('/data', async (req, res) => {
             FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
             (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
             "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
-            WHERE lmonth = monthocc AND lyear = yearocc ORDER BY lyear, lmonth`,
+            WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
+            ORDER BY lyear, lmonth`,
         );
+        tuples = result;
         await con.close();
         res.json(result.rows);
         console.log(result.rows);
@@ -50,6 +80,78 @@ app.get('/data', async (req, res) => {
     }
 });
 
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
+app.post('/data', async (req, res) => {
+    try{
+        let StartDate = req.body.StartDate;
+        let EndDate = req.body.EndDate;
+        console.log(StartDate);
+        console.log(EndDate);
+        res.send("<div><h2>Dates successfully entered</h2><a href='./individualpage.html'>Back to the Chart</a></div>")
+    }
+    catch {
+        res.send("Error has occurred please try again.");
+    }
+})
 app.post('/data', async (req, res) => {
     try{
         let StartDate = req.body.StartDate;

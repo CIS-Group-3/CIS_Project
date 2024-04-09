@@ -9,11 +9,17 @@
     </header>
     <form action = "/data" method ="POST">
         <fieldset>
-            <label>Start Date</label>
-            <input type ="text" id = 'StartDate' name="StartDate" placeholder="01/01/2020" required>
+            <label>Start Month</label>
+            <input type ="text" id = 'StartMonth' name="StartMonth" placeholder="1" required>
             <br><br>
-            <label>End Date</label>
-            <input type ="text" id = 'EndDate' name="EndDate" placeholder="01/01/2023" required>
+            <label>Start Year</label>
+            <input type ="text" id = 'StartYear' name="StartYear" placeholder="2020" required>
+            <br><br>
+            <label>End Month</label>
+            <input type ="text" id = 'EndMonth' name="EndMonth" placeholder="12" required>
+            <br><br>
+            <label>End Year</label>
+            <input type ="text" id = 'EndYear' name="EndYear" placeholder="2023" required>
             <br><br>
             <button type ="submit">Submit</button>
         </fieldset>
@@ -55,7 +61,7 @@
         var myChart = document.getElementById('myChart').getContext('2d');
 
         var barChart = new Chart(myChart, {
-            type: 'bar',
+            type: 'line',
             data:{
                 labels:['AAA', 'Worcester', 'Springfield', 'Lowell', 'Cambridge', 'New Bedford'],
                 datasets:[{

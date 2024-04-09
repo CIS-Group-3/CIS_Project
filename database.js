@@ -13,7 +13,6 @@ async function fun() {
         const indexChoices = ['Low', 'High']; // Include all index choices
         const userStates = ['Texas', 'New Mexico'];
 
-
         //From the userStates array, use map to iterate over each element. Then for each element, generate string for each state
         const statePlaceholders = userStates.map((_, index) => `:state${index + 1}`).join(', ');
 

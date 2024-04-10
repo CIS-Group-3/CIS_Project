@@ -1,3 +1,11 @@
+`SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
+            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)/100000, 2) as "USAvgUnemployment" 
+            FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
+            (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
+            "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
+            WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
+            ORDER BY lyear, lmonth`
+
 <!DOCTYPE html>
 <html lang = "en">
 <head>
@@ -6,9 +14,9 @@
     <link rel="stylesheet" href="crimerate.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--for map-->
-    <script src="mapdata.js"></script>
+    <!-- <script src="mapdata.js"></script>
     <script src="usmap.js"></script>
-    <script src="select.js"></script>
+    <script src="select.js"></script> -->
     <!--for chart-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
@@ -118,7 +126,7 @@
                 endYear = endDate.getFullYear();
                 
                 await fetchData();
-                console.log(data.rows);
+                //console.log(data.rows);
                 
                 placeholder.style.display = 'block'; //make chart visible if needed.
                 

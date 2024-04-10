@@ -1,0 +1,23 @@
+a{
+    font-size: 40px;
+}
+ #option-holder{
+    height:130px;
+    width:100%;
+} 
+#chart-holder{
+    float:left;
+    height:700px;
+    width: 50%;
+}
+
+#startDate{
+    float:left;
+    width:200px;
+}
+
+#endDate{
+    float:left;
+    padding-left: 30px;
+    width:200px;
+}

@@ -51,7 +51,36 @@ app.post('/data', async (req, res) => {
 
 app.get('/individualpage', async (req, res) => {
     try {
+<<<<<<< Updated upstream
     
+=======
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        // var statesString = req.query.states;
+
+        // var states = JSON.parse(statesString);
+
+        // console.log("states are: "+states);
+
+        // whereClause = ``; 
+
+        // if (Object.keys(states).length >= 1){
+        //     whereClause = `(StateOrArea = '${states[0]}'`;
+        // }
+        
+        // for (i =1; i<Object.keys(states).length; i++){
+        //     whereClause += ` OR `;
+        //     whereClause += `StateOrArea = '${states[i]}'`; 
+        // }
+
+        // if (Object.keys(states).length >= 1){
+        //     whereClause += `) AND `;
+        // }
+
+        
+>>>>>>> Stashed changes
         if (startYear < endYear){
             whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
             OR (LYear > ${startYear} AND LYear < ${endYear})
@@ -64,12 +93,20 @@ app.get('/individualpage', async (req, res) => {
         const con = await connectToDatabase();
         const result = await con.execute(
             `SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
+<<<<<<< Updated upstream
             FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment), 2) as "USAvgUnemployment" 
+=======
+            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)/100000, 2) as "USAvgUnemployment" 
+>>>>>>> Stashed changes
             FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
             (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
             "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
             WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
+<<<<<<< Updated upstream
             ORDER BY lyear, lmonth`,
+=======
+            ORDER BY lyear, lmonth`
+>>>>>>> Stashed changes
         );
         tuples = result;
         await con.close();

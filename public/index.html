@@ -16,6 +16,35 @@
     <br>
     <a href="./individualpage.html">Brenda's Chart</a>
     <br>
+<<<<<<< Updated upstream
     <a href="./data">Raw Tuples</a>
+=======
+    <br>
+    <br>
+    <a style="font-size: 20px;" href="./unemployment.html">unemployment</a>
+    <br>
+    <a style="font-size: 20px;" href="./crimerate.html">crimerate</a>
+
+    <script>
+        // Function to fetch data from the server and display it in the table
+        async function fetchData() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+                //const tableBody = document.getElementById('data-body');
+
+                // Clear existing table rows
+                console.log(data);
+
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Fetch data when the page loads
+        window.onload = fetchData;
+    </script>
+>>>>>>> Stashed changes
 </body>
 </html>

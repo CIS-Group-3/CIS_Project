@@ -131,10 +131,10 @@
             var uniqueMonths = [];
 
             data.rows.forEach(row => {
-                const state = row[0];
+                const state = row[2];
                 const year = row[1];
-                const month = row[2];
-                const rate = row[3];
+                const month = row[0];
+                const rate = row[5];
 
                 const monthyear = `${month}/${year}`;
                 if (!uniqueMonths.includes(monthyear)) {
@@ -173,7 +173,27 @@
                         labels: uniqueMonths,
                         datasets: datasetsArray
                     },
-                    options: {elements:{point:{radius: 0}}}  //remove data point circles
+                    options: {
+                        elements: {
+                            point: {
+                                radius: 0 //remove data point circles
+                            }
+                        },
+                        scales: {
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Time (Months)'
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Total COVID Deaths Reported'
+                                }
+                            }]
+                        }
+                    }
                 });
             }
 

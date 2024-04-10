@@ -1,11 +1,3 @@
-`SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
-            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)/100000, 2) as "USAvgUnemployment" 
-            FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
-            (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
-            "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
-            WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
-            ORDER BY lyear, lmonth`
-
 <!DOCTYPE html>
 <html lang = "en">
 <head>
@@ -13,10 +5,6 @@
   	<title> Unemployment </title>
     <link rel="stylesheet" href="crimerate.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--for map-->
-    <!-- <script src="mapdata.js"></script>
-    <script src="usmap.js"></script>
-    <script src="select.js"></script> -->
     <!--for chart-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
@@ -140,13 +128,13 @@
                 borderWidth: 2
                 };
 
-                datasets["crimerate"] = {
-                label: "crimerate",
-                data: [],
-                backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                borderWidth: 2
-                };
+                // datasets["crimerate"] = {
+                // label: "crimerate",
+                // data: [],
+                // backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
+                // borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
+                // borderWidth: 2
+                // };
 
                 var uniqueMonths = [];
                 
@@ -155,32 +143,22 @@
                     const month = row[0];
                     const year = row[1];
                     const unemployment = row[3];
-                    const crimerate = row[4];
+                    //const crimerate = row[4];
                     
                     const monthyear = `${month}/${year}`;
                     if (!uniqueMonths.includes(monthyear)) {
                         uniqueMonths.push(monthyear);
                     }
-                    
-                    // if (!datasets[monthyear]) {
-                    //     datasets[monthyear] = {
-                    //     label: monthyear,
-                    //     data: [],
-                    //     backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                    //     borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                    //     borderWidth: 2
-                    //     };
-                    // }
 
                     datasets["unemployment"].data.push({
                         x: `${month}/${year}`,
                         y: unemployment
                     });
 
-                    datasets["crimerate"].data.push({
-                        x: `${month}/${year}`,
-                        y: crimerate
-                    });
+                    // datasets["crimerate"].data.push({
+                    //     x: `${month}/${year}`,
+                    //     y: crimerate
+                    // });
                 });
                 
                 const datasetsArray = Object.values(datasets);
@@ -223,51 +201,6 @@
                 console.error('Error fetching data:', error);
             }
         }
-
-        // function writeSharedStates(state){
-        //     sharedStates.push(state);
-        //     //console.log("shared: " +sharedStates);
-            
-        //     document.getElementById('statesSelected').innerHTML = "States selected: "
-        //     if (sharedStates.length >=1){
-        //         for(i=0;i<sharedStates.length;i++){
-        //             document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
-        //             if (i<sharedStates.length-1){
-        //                 document.getElementById('statesSelected').innerHTML += `,`;
-        //             }
-        //         }
-        //     }
-        //     fillChart();
-        // }
-
-        // function removeSharedStates(state){
-        //     //console.log("sharedstates: "+sharedStates);
-
-        //     const index = sharedStates.indexOf(state);
-        //     //console.log("index:"+index);
-        //     if (index != -1) {
-        //         sharedStates.splice(index, 1);
-        //     }
-        //     //console.log("sharedstates: "+sharedStates);
-
-        //     document.getElementById('statesSelected').innerHTML = "States selected: "
-        //     if (sharedStates.length >=1){
-        //         for(i=0;i<sharedStates.length;i++){
-        //             document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
-        //             if (i<sharedStates.length-1){
-        //                 document.getElementById('statesSelected').innerHTML += `,`;
-        //             }
-        //         }
-        //     }
-            
-        //     if (sharedStates.length >=1){
-        //         fillChart();
-        //     }
-        //     else{ 
-        //         //console.log("chart should be empty");
-        //         placeholder.style.display = 'none';
-        //     }
-        // }
 
     </script>
 </body>

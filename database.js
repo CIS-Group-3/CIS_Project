@@ -11,7 +11,7 @@ async function fun() {
         });
 
         const indexChoices = ['Low', 'High']; // Include all index choices
-        const userStates = ['Texas', 'New Mexico'];
+        const userStates = ['Texas'];
 
         //From the userStates array, use map to iterate over each element. Then for each element, generate string for each state
         const statePlaceholders = userStates.map((_, index) => `:state${index + 1}`).join(', ');
@@ -42,8 +42,8 @@ async function fun() {
         const bindVars = {
             startMonth: 1,
             endMonth: 12,
-            startYear: 2023,
-            endYear: 2024
+            startYear: 2022,
+            endYear: 2022
         };
 
         //Add user-specified states to bind variables
@@ -53,7 +53,7 @@ async function fun() {
 
         const result = await con.execute(query, bindVars);
 
-        console.log(result.rows);
+
     } catch (err) {
         console.error(err);
     }

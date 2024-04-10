@@ -1,90 +1,97 @@
 const express = require('express');
-const oracledb = require('oracledb');
 const http = require('http');
-const bcrypt = require('bcrypt');
-const path = require("path");
 const bodyParser = require('body-parser');
-const users = require('./data').userDB;
+const path = require("path");
+const oracledb = require('oracledb');
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static(path.join(__dirname,'./public')));
-
-
-app.get('/',(req,res) => {
-    res.sendFile(path.join(__dirname,'./public/index.html'));
-});
-
-async function connectToDatabase() {
-    try {
-        const con = await oracledb.getConnection({
-            user: "abigail.lin",
-            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
-            connectString: "oracle.cise.ufl.edu:1521/orcl"
-        });
-        return con;
-    } catch (error) {
-        console.error("Error connecting to database:", error);
-        throw error;
-    }
-}
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, './public')));
 
 app.get('/data', async (req, res) => {
     try {
-        var startMonth = req.query.sm;
-        var startYear = req.query.sy;
-        var endMonth = req.query.em;
-        var endYear = req.query.ey;
-        var statesString = req.query.states;
+        const { sm, sy, em, ey, states } = req.query;
+        const app_startMonth = parseInt(sm);
+        const app_startYear = parseInt(sy);
+        const app_endMonth = parseInt(em);
+        const app_endYear = parseInt(ey);
+        const userStates = JSON.parse(states);
 
-        var states = JSON.parse(statesString);
+        const data = await executeSQLQuery(app_startMonth, app_startYear, app_endMonth, app_endYear, userStates);
 
-        console.log("states are: "+states);
-
-        whereClause = ``; 
-
-        if (Object.keys(states).length >= 1){
-            whereClause = `(StateOrArea = '${states[0]}'`;
-        }
-        
-        for (i =1; i<Object.keys(states).length; i++){
-            whereClause += ` OR `;
-            whereClause += `StateOrArea = '${states[i]}'`; 
-        }
-
-        if (Object.keys(states).length >= 1){
-            whereClause += `) AND `;
-        }
-
-        
-        if (startYear < endYear){
-            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
-            OR (LYear > ${startYear} AND LYear < ${endYear})
-            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
-        }
-        else{
-            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
-        }
-
-        console.log("where: " +whereClause);
-
-        const con = await connectToDatabase();
-        const result = await con.execute(
-            `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
-            FROM "S.KARANTH"."LABORFORCE" 
-            WHERE (${whereClause})
-            GROUP BY StateOrArea, LYear, LMonth
-            ORDER BY StateOrArea, LYear, LMonth`
-        );
-
-        await con.close();
-        res.json(result);
+        res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
+async function executeSQLQuery(startMonth, startYear, endMonth, endYear, userStates) {
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection({
+            user: "abigail.lin",
+            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
+            connectString: "oracle.cise.ufl.edu:1521/orcl"
+        });
+
+        console.log(sharedStates);
+
+        const indexChoices = ['Low', 'High'];
+
+        const statePlaceholders = userStates.map((_, index) => `:state${index + 1}`).join(', ');
+
+        const query = `
+            SELECT
+                d.dateMonth,
+                d.dateYear,
+                cd.StateName,
+                ${indexChoices.map(choice => `AVG(CASE WHEN '${choice}' IN (${indexChoices.map(choice => `'${choice}'`).join(', ')}) THEN d.${choice} END) AS avg${choice}`).join(', ')},
+                SUM(cd.COVID19Deaths) AS totalCOVIDDeaths
+            FROM DJIndex d
+                     JOIN "B.NAKASONE".COVIDDeathReport cd ON d.dateMonth = cd.MonthCOVID AND d.dateYear = cd.YearCOVID
+            WHERE (d.dateMonth BETWEEN :startMonth AND :endMonth)
+              AND (d.dateYear BETWEEN :startYear AND :endYear)
+              AND cd.StateName IN (${statePlaceholders})
+            GROUP BY d.dateMonth, d.dateYear, cd.StateName
+            ORDER BY d.dateYear, d.dateMonth`;
+
+        const bindVars = {
+            startMonth,
+            endMonth,
+            startYear,
+            endYear
+        };
+
+        userStates.forEach((state, index) => {
+            bindVars[`state${index + 1}`] = state;
+        });
+
+        const result = await connection.execute(query, bindVars);
+
+        // Check if result.rows is defined
+        if (result.rows) {
+            return result.rows;
+        } else {
+            throw new Error('No rows returned from the query');
+        }
+    } catch (error) {
+        console.error("Error executing SQL query:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (error) {
+                console.error("Error closing connection:", error);
+            }
+        }
+    }
+}
+
+
 
 app.post('/register', async (req, res) => {
     try{
@@ -138,7 +145,6 @@ app.post('/login', async (req, res) => {
         res.send("Internal server error");
     }
 });
-
 
 server.listen(3000, function(){
     console.log("server is listening on port: 3000");

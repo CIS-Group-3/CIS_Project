@@ -26,12 +26,13 @@
                     select end date:
                       <input type="text" class="form-control" id="endDatePicker" readonly>
                 </div>
-
             </div>
         </div>
-        
         <div id="chart-holder">
             <canvas id="myChart"></canvas>
+        </div>
+        <div id ="chart1-holder">   
+            <canvas id ="myChart1"></canvas>
         </div>
     </div>
 
@@ -53,7 +54,11 @@
         var placeholder = document.getElementById('myChart');
         var myChart = placeholder.getContext('2d');
 
+        var placeholder1 = document.getElementById('myChart1');
+        var myChart1 = placeholder1.getContext('2d');
+
         var lineChart;
+        var lineChart1; 
 
         $(document).ready(function(){
             $('#startDatePicker').datepicker({
@@ -63,7 +68,6 @@
                 autoclose: true,
                 }).on('changeDate', function(e){
                         if ($('#endDatePicker').datepicker('getDate') != null){
-
                             var startDate = $('#startDatePicker').datepicker('getDate');
                             var endDate = $('#endDatePicker').datepicker('getDate');
                             if (startDate >= endDate) {
@@ -117,8 +121,10 @@
                 //console.log(data.rows);
                 
                 placeholder.style.display = 'block'; //make chart visible if needed.
+                placeholder1.style.display = 'block';
                 
-                let datasets = {}; //groups data by state
+                let datasets = {}; //unemployment chart
+                let datasets1 = {}; //crimerate chart
                 
                 datasets["unemployment"] = {
                 label: "unemployment",
@@ -128,13 +134,13 @@
                 borderWidth: 2
                 };
 
-                // datasets["crimerate"] = {
-                // label: "crimerate",
-                // data: [],
-                // backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                // borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                // borderWidth: 2
-                // };
+                datasets1["crimerate"] = {
+                label: "crimerate",
+                data: [],
+                backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
+                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
+                borderWidth: 2
+                };
 
                 var uniqueMonths = [];
                 
@@ -142,8 +148,8 @@
                     //const state = row[0];
                     const month = row[0];
                     const year = row[1];
-                    const unemployment = row[3];
-                    //const crimerate = row[4];
+                    const unemployment = row[2];
+                    const crimerate = row[3];
                     
                     const monthyear = `${month}/${year}`;
                     if (!uniqueMonths.includes(monthyear)) {
@@ -155,13 +161,14 @@
                         y: unemployment
                     });
 
-                    // datasets["crimerate"].data.push({
-                    //     x: `${month}/${year}`,
-                    //     y: crimerate
-                    // });
+                    datasets1["crimerate"].data.push({
+                        x: `${month}/${year}`,
+                        y: crimerate
+                    });
                 });
                 
                 const datasetsArray = Object.values(datasets);
+                const datasetsArray1 = Object.values(datasets1);
 
                 if (lineChart) {
                     // Update chart data and options
@@ -180,12 +187,28 @@
                     });
                 }
 
+                if (lineChart1) {
+                    // Update chart data and options
+                    lineChart1.data.labels = uniqueMonths;
+                    lineChart1.data.datasets = datasetsArray1;
+                    lineChart1.update();
+                } else {
+                    // Create a new chart
+                    lineChart1 = new Chart(myChart1, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueMonths,
+                            datasets: datasetsArray1
+                        },
+                        options: {elements:{point:{radius: 0}}}  //remove data point circles
+                    });
+                }
+
             } catch (error) {
                 console.error('Error filling chart:', error);
             }               
         }
         
-
         // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {

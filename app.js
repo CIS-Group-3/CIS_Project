@@ -1,63 +1,77 @@
 const express = require('express');
-const http = require('http');
-const bodyParser = require('body-parser');
-const path = require("path");
 const oracledb = require('oracledb');
+const http = require('http');
+const bcrypt = require('bcrypt');
+const path = require("path");
+const bodyParser = require('body-parser');
+const users = require('./data').userDB;
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, './public')));
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(express.static(path.join(__dirname,'./public')));
 
-app.get('/data', async (req, res) => {
-    try {
-        const { sm, sy, em, ey, states } = req.query;
-        const app_startMonth = parseInt(sm);
-        const app_startYear = parseInt(sy);
-        const app_endMonth = parseInt(em);
-        const app_endYear = parseInt(ey);
-        const userStates = JSON.parse(states);
 
-        const data = await executeSQLQuery(app_startMonth, app_startYear, app_endMonth, app_endYear, userStates);
-
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+app.get('/',(req,res) => {
+    res.sendFile(path.join(__dirname,'./public/index.html'));
 });
 
-async function executeSQLQuery(startMonth, startYear, endMonth, endYear, userStates) {
-    let connection;
-
+async function connectToDatabase() {
     try {
-        connection = await oracledb.getConnection({
+        const con = await oracledb.getConnection({
             user: "abigail.lin",
             password: "7yxtZs9hKMS0WxR0XV5MlrnE",
             connectString: "oracle.cise.ufl.edu:1521/orcl"
         });
+        return con;
+    } catch (error) {
+        console.error("Error connecting to database:", error);
+        throw error;
+    }
+}
 
-        console.log(sharedStates);
+app.get('/data', async (req, res) => {
+    try {
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        var statesString = req.query.states;
 
-        const indexChoices = ['Low', 'High'];
+        var states = JSON.parse(statesString);
 
-        const statePlaceholders = userStates.map((_, index) => `:state${index + 1}`).join(', ');
+        //Build the where statement dynamically based on user's input parameters
+        let whereClause = '';
+        if (states.length > 0) {
+            whereClause = `AND cd.StateName IN (${states.map((_, index) => `:state${index + 1}`).join(', ')})`;
+        }
 
+        //Connect to the database
+        const con = await connectToDatabase();
+
+        // Construct SQL Query dynamically
+        const indexChoices = ['Low', 'High']; // Include all index choices
+        const statePlaceholders = states.map((_, index) => `:state${index + 1}`).join(', ');
         const query = `
             SELECT
                 d.dateMonth,
                 d.dateYear,
                 cd.StateName,
+                --Get the average index values dynamically based on indexChoices array
+                --For each element in the indexChoices, can dynamically construct string with template literal
+                --Also use CASE WHEN https://www.w3schools.com/sql/sql_case.asp
                 ${indexChoices.map(choice => `AVG(CASE WHEN '${choice}' IN (${indexChoices.map(choice => `'${choice}'`).join(', ')}) THEN d.${choice} END) AS avg${choice}`).join(', ')},
                 SUM(cd.COVID19Deaths) AS totalCOVIDDeaths
             FROM DJIndex d
-                     JOIN "B.NAKASONE".COVIDDeathReport cd ON d.dateMonth = cd.MonthCOVID AND d.dateYear = cd.YearCOVID
+            JOIN "B.NAKASONE".COVIDDeathReport cd ON d.dateMonth = cd.MonthCOVID AND d.dateYear = cd.YearCOVID
             WHERE (d.dateMonth BETWEEN :startMonth AND :endMonth)
               AND (d.dateYear BETWEEN :startYear AND :endYear)
-              AND cd.StateName IN (${statePlaceholders})
+              ${whereClause}
             GROUP BY d.dateMonth, d.dateYear, cd.StateName
             ORDER BY d.dateYear, d.dateMonth`;
 
+        //Define bind variables
         const bindVars = {
             startMonth,
             endMonth,
@@ -65,41 +79,30 @@ async function executeSQLQuery(startMonth, startYear, endMonth, endYear, userSta
             endYear
         };
 
-        userStates.forEach((state, index) => {
+        //Add user-specified input to bind variables
+        states.forEach((state, index) => {
             bindVars[`state${index + 1}`] = state;
         });
 
-        const result = await connection.execute(query, bindVars);
+        //Execute the query
+        const result = await con.execute(query, bindVars);
 
-        // Check if result.rows is defined
-        if (result.rows) {
-            return result.rows;
-        } else {
-            throw new Error('No rows returned from the query');
-        }
+        //Close connection
+        await con.close();
+
+        //Send response
+        res.json(result);
     } catch (error) {
-        console.error("Error executing SQL query:", error);
-        throw error;
-    } finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (error) {
-                console.error("Error closing connection:", error);
-            }
-        }
+        res.status(500).json({ error: error.message });
     }
-}
-
-
-
+});
 app.post('/register', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);
         if (!foundUser) {
-    
+
             let hashPassword = await bcrypt.hash(req.body.password, 10);
-    
+
             let newUser = {
                 id: Date.now(),
                 username: req.body.username,
@@ -108,7 +111,7 @@ app.post('/register', async (req, res) => {
             };
             users.push(newUser);
             console.log('User list', users);
-    
+
             res.send("<div align ='center'><h2>Registration successful</h2></div><br><br><div align='center'><a href='./login.html'>login</a></div><br><br><div align='center'><a href='./registration.html'>Register another user</a></div>");
         } else {
             res.send("<div align ='center'><h2>Email already used</h2></div><br><br><div align='center'><a href='./registration.html'>Register again</a></div>");
@@ -122,10 +125,10 @@ app.post('/login', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);
         if (foundUser) {
-    
-            let submittedPass = req.body.password; 
-            let storedPass = foundUser.password; 
-    
+
+            let submittedPass = req.body.password;
+            let storedPass = foundUser.password;
+
             const passwordMatch = await bcrypt.compare(submittedPass, storedPass);
             if (passwordMatch) {
                 let usrname = foundUser.username;
@@ -135,16 +138,17 @@ app.post('/login', async (req, res) => {
             }
         }
         else {
-    
+
             let fakePass = `$2b$$10$ifgfgfgfgfgfgfggfgfgfggggfgfgfga`;
             await bcrypt.compare(req.body.password, fakePass);
-    
+
             res.send("<div align ='center'><h2>Invalid email or password</h2></div><br><br><div align='center'><a href='./login.html'>login again<a><div>");
         }
     } catch{
         res.send("Internal server error");
     }
 });
+
 
 server.listen(3000, function(){
     console.log("server is listening on port: 3000");

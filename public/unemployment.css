@@ -1,18 +1,23 @@
 a{
     font-size: 40px;
 }
-#option-holder{
-    height:130px;
+#tabs-holder{
     width:100%;
+}
+
+#option-holder{
+    height:160px;
+    width:100%;
+    padding-bottom: 20px;
 }
 #my-map-holder{
     float:left;
-    height:700px;
+    height:500px;
     width: 50%;
 }
 #chart-holder{
     float:right;
-    height:700px;
+    height:500px;
     width: 50%;
 }
 

@@ -3,20 +3,24 @@
 <head>
 	<meta charset = "UTF-8">
   	<title> Unemployment </title>
-    <link rel="stylesheet" href="crimerate.css">
+    <link rel="stylesheet" href="unemployment.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--for map-->
+    <script src="mapdata.js"></script>
+    <script src="usmap.js"></script>
+    <script src="select.js"></script>
     <!--for chart-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <!--for datepicker-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-  <!--for tabs-->
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <!--for tabs-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   	
 </head>
 <body>
-    <div class="container">
+    <div id="container">
         <div id="tab-holder">
             <div class="row">
                 <div class="col">
@@ -49,23 +53,28 @@
             </div>
         </div>
         <div id="option-holder">
-            <div id="instructions">Select state(s) and time range to view the chart.</div>
+            <br>
+            <div id="instructions" style="font-size: 18px; margin-bottom: 30px;">Select state(s) and date range to view the chart.</div>
+            
             <div id="dateArea">                
                 <div id="startDate">
-                    select start date:
-                      <input type="text" class="form-control" id="startDatePicker" readonly>
+                    <div style="float:left">Select start date:</div>
+                    <input style="float:right; width:160px" type="text" class="form-control" id="startDatePicker" readonly>
                 </div>
                 <div id="endDate">
-                    select end date:
-                      <input type="text" class="form-control" id="endDatePicker" readonly>
+                    <div style="float:left">Select end date:</div>
+                    <input style="float:right; width:160px" type="text" class="form-control" id="endDatePicker" readonly>
                 </div>
+
             </div>
         </div>
+
+        <div id="my-map-holder">
+            <div id="map"></div>
+        </div>
+        
         <div id="chart-holder">
             <canvas id="myChart"></canvas>
-        </div>
-        <div id ="chart1-holder">   
-            <canvas id ="myChart1"></canvas>
         </div>
     </div>
 
@@ -73,7 +82,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/en-gb.min.js"></script>
-
 
     <script>
         var data;
@@ -87,20 +95,20 @@
         var placeholder = document.getElementById('myChart');
         var myChart = placeholder.getContext('2d');
 
-        var placeholder1 = document.getElementById('myChart1');
-        var myChart1 = placeholder1.getContext('2d');
-
         var lineChart;
-        var lineChart1; 
 
         $(document).ready(function(){
+            var maxDate = new Date(2022, 11, 31);
+
             $('#startDatePicker').datepicker({
                 format: "MM yyyy",
                 startView: "months", 
                 minViewMode: "months",
                 autoclose: true,
+                endDate: maxDate,
                 }).on('changeDate', function(e){
-                        if ($('#endDatePicker').datepicker('getDate') != null){
+                        if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.length >=1){
+
                             var startDate = $('#startDatePicker').datepicker('getDate');
                             var endDate = $('#endDatePicker').datepicker('getDate');
                             if (startDate >= endDate) {
@@ -108,9 +116,9 @@
                                 // Reset the start date to the previous value
                                 $(this).val('');
                             } else {
-                                //if (sharedStates.length >=1){ //state(s) selected
+                                if (sharedStates.length >=1){ //state(s) selected
                                     fillChart();
-                                //}
+                                }
                             }
                         }
                     });
@@ -119,7 +127,8 @@
                 format: "MM yyyy",
                 startView: "months", 
                 minViewMode: "months",
-                autoclose: true
+                autoclose: true,
+                endDate: maxDate,
                 }).on('changeDate', function(e){
                         if ($('#startDatePicker').datepicker('getDate') != null){
 
@@ -130,78 +139,63 @@
                                 // Reset the start date to the previous value
                                 $(this).val('');
                             } else {
-                                //if (sharedStates.length >=1){ //state(s) selected
+                                if (sharedStates.length >=1){ //state(s) selected
                                     fillChart();
-                                //}
+                                }
                             }
                         }
                     });
         });
-        
+
         //show chart
         async function fillChart(){
             try{
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
                 //console.log("date: "+startDate.getMonth());
-                
+
                 startMonth = startDate.getMonth() +1;
                 startYear = startDate.getFullYear();
                 endMonth = endDate.getMonth()+1;
                 endYear = endDate.getFullYear();
-                
+
                 await fetchData();
-                //console.log(data.rows);
-                
+
                 placeholder.style.display = 'block'; //make chart visible if needed.
-                placeholder1.style.display = 'block';
-                
-                let datasets = {}; //unemployment chart
-                let datasets1 = {}; //crimerate chart
-                
-                datasets["unemployment"] = {
-                label: "unemployment",
-                data: [],
-                backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                borderWidth: 2
-                };
 
-                datasets1["crimerate"] = {
-                label: "crimerate",
-                data: [],
-                backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                borderWidth: 2
-                };
 
+                let datasets = {}; //groups data by state
                 var uniqueMonths = [];
                 
                 data.rows.forEach(row => {
-                    //const state = row[0];
-                    const month = row[0];
+                    const state = row[0];
                     const year = row[1];
-                    const unemployment = row[2];
-                    const crimerate = row[3];
-                    
+                    const month = row[2];
+                    const rate = row[3];
+
                     const monthyear = `${month}/${year}`;
                     if (!uniqueMonths.includes(monthyear)) {
                         uniqueMonths.push(monthyear);
                     }
 
-                    datasets["unemployment"].data.push({
-                        x: `${month}/${year}`,
-                        y: unemployment
-                    });
 
-                    datasets1["crimerate"].data.push({
+                    if (!datasets[state]) {
+                        datasets[state] = {
+                        label: state,
+                        data: [],
+                        backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
+                        borderColor: stateColors[state] || `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
+                        borderWidth: 2
+                        };
+                    }
+
+                    datasets[state].data.push({
                         x: `${month}/${year}`,
-                        y: crimerate
+                        y: rate
                     });
                 });
                 
                 const datasetsArray = Object.values(datasets);
-                const datasetsArray1 = Object.values(datasets1);
 
                 if (lineChart) {
                     // Update chart data and options
@@ -216,24 +210,10 @@
                             labels: uniqueMonths,
                             datasets: datasetsArray
                         },
-                        options: {elements:{point:{radius: 0}}}  //remove data point circles
-                    });
-                }
-
-                if (lineChart1) {
-                    // Update chart data and options
-                    lineChart1.data.labels = uniqueMonths;
-                    lineChart1.data.datasets = datasetsArray1;
-                    lineChart1.update();
-                } else {
-                    // Create a new chart
-                    lineChart1 = new Chart(myChart1, {
-                        type: 'line',
-                        data: {
-                            labels: uniqueMonths,
-                            datasets: datasetsArray1
-                        },
-                        options: {elements:{point:{radius: 0}}}  //remove data point circles
+                        options: {
+                            height: 700,
+                            width: 500,
+                            elements:{point:{radius: 0}}}  //remove data point circles
                     });
                 }
 
@@ -242,11 +222,12 @@
             }               
         }
         
+
         // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                //sharedString = JSON.stringify(sharedStates);
-                const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}`;
+                sharedString = JSON.stringify(sharedStates);
+                const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}`;
 
                 const response = await fetch(url);
                 data = await response.json();
@@ -257,6 +238,92 @@
                 console.error('Error fetching data:', error);
             }
         }
+
+        function writeSharedStates(state){
+            sharedStates.push(state);
+            //console.log("shared: " +sharedStates);
+
+            /* to display state names above map
+            document.getElementById('statesSelected').innerHTML = "States selected: "
+            if (sharedStates.length >=1){
+                for(i=0;i<sharedStates.length;i++){
+                    document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                    if (i<sharedStates.length-1){
+                        document.getElementById('statesSelected').innerHTML += `,`;
+                    }
+                }
+            }
+            */
+            fillChart();
+        }
+
+        function removeSharedStates(state){
+            //console.log("sharedstates: "+sharedStates);
+
+            const index = sharedStates.indexOf(state);
+            //console.log("index:"+index);
+            if (index != -1) {
+                sharedStates.splice(index, 1);
+            }
+            //console.log("sharedstates: "+sharedStates);
+
+            /* display state names above map
+            document.getElementById('statesSelected').innerHTML = "States selected: "
+            if (sharedStates.length >=1){
+                for(i=0;i<sharedStates.length;i++){
+                    document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                    if (i<sharedStates.length-1){
+                        document.getElementById('statesSelected').innerHTML += `,`;
+                    }
+                }
+            }
+            */
+            
+            if (sharedStates.length >=1){
+                fillChart();
+            }
+            else{ 
+                //console.log("chart should be empty");
+                placeholder.style.display = 'none';
+            }
+        }
+
+        
+
+        // Function to generate distinct colors
+        function generateColors(numColors) {
+            const colors= [];
+            const hueStep =360/numColors;
+            for (let i = 0; i <numColors; i++) {
+                const hue = (hueStep *i) %360;
+                const saturation= 10+Math.random() *90; // Vary between 10% - 100%
+                const lightness= 20 +Math.random()* 60; // Vary lightness from 20% - 80%
+                colors.push(`hsl(${hue},${saturation}%,${lightness}%)`);
+            }
+            return colors;
+        }
+
+        // List of state names
+        const stateNames = [
+            'Alabama', 'Alaska', 'Arizona','Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+            'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+            'Massachusetts','Michigan', 'Minnesota','Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+            'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+            'Rhode Island', 'South Carolina','South Dakota','Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+            'West Virginia','Wisconsin','Wyoming'
+        ];
+
+        // Generate distinct colors
+        const colors = generateColors(stateNames.length);
+
+        // Generate state colors object
+        const stateColors = {};
+        for (let i = 0; i <stateNames.length; i++) {
+            stateColors[stateNames[i]]=colors[i];
+        }
+
+        console.log(stateColors);
+
 
     </script>
 </body>

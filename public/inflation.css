@@ -1,0 +1,29 @@
+a {
+    font-size: 40px;
+}
+
+#option-holder {
+    height: 130px;
+    width: 100%;
+}
+
+#my-map-holder {
+    display: none; /* Remove the map holder */
+}
+
+#chart-holder {
+    float: left; /* Float the chart holder to the left */
+    height: 700px;
+    width: 100%; /* Occupy full width */
+}
+
+#startDate {
+    float: left;
+    width: 200px;
+}
+
+#endDate {
+    float: left;
+    padding-left: 30px;
+    width: 200px;
+}

@@ -13,5 +13,32 @@
     <a href="./registration.html">Register</a>
     <br>
     <a href="./login.html">Login</a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a style="font-size: 20px;" href="./inflation.html">inflation</a>
+
+    <script>
+        // Function to fetch data from the server and display it in the table
+        async function fetchData() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+                //const tableBody = document.getElementById('data-body');
+
+                // Clear existing table rows
+                console.log(data);
+
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Fetch data when the page loads
+        window.onload = fetchData;
+    </script>
 </body>
+
 </html>

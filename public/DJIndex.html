@@ -161,7 +161,18 @@
             userIndices.push(indexValue);
         });
 
-        generateIndexCharts()
+        if (sharedStates.length <= 0)
+        {
+            sharedStates = ["Florida"];
+            generateIndexCharts();
+            sharedStates = [];
+        }
+        else
+        {
+            generateIndexCharts()
+        }
+
+
     }
 
     //Call the updateIndices function when checkbox is checked/unchecked
@@ -169,8 +180,6 @@
         $('input[type=checkbox]').change(function() {
             updateIndices();
         });
-
-        //generateIndexCharts()
     });
 
     $(document).ready(function() {
@@ -210,7 +219,6 @@
                 const year = row[1];
                 const month = row[0];
                 const totalDeaths = row[userIndices.length + 3];
-                console.log(userIndices.length);
 
                 const monthyear = `${month}/${year}`;
                 if (!uniqueMonths.includes(monthyear)) {
@@ -289,6 +297,7 @@
             await fetchData();
 
             const currentIndex = userIndices[index];
+
             let placeholderChart;
             let currChart;
 
@@ -315,8 +324,6 @@
                 const year = row[1];
                 const month = row[0];
                 const currIndex = row[index + 3];
-
-                console.log("currIndex", currIndex);
 
                 const monthyear = `${month}/${year}`;
                 if (!uniqueMonths.includes(monthyear)) {

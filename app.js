@@ -55,6 +55,16 @@ app.get('/data', async (req, res) => {
 
         var states = JSON.parse(statesString);
 
+        if (indexChoices.length < 0)
+        {
+            indexChoices = ["Open"];
+        }
+        if (states.length < 0)
+        {
+            states = ["Florida"];
+        }
+
+
         //Build the where statement dynamically based on user's input parameters
         let whereClause = '';
         if (states.length > 0) {

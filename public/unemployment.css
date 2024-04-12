@@ -1,0 +1,39 @@
+a{
+    font-size: 40px;
+}
+#tabs-holder{
+    width:100%;
+}
+#container{
+    width:100%;
+    height:100vh;
+    padding:20px;
+}
+
+#option-holder{
+    height:130px;
+    width:100%;
+}
+#my-map-holder{
+    float:left;
+    margin-top: 20px;
+    height:500px;
+    width: 40%;
+}
+#chart-holder{
+    float:right;
+    height:500px;
+    width: 55%;
+}
+
+
+#startDate{
+    float:left;
+    width:290px;
+}
+
+#endDate{
+    float:left;
+    margin-left: 40px;
+    width:290px;
+}

@@ -1,18 +1,21 @@
 const express = require('express');
+const oracledb = require('oracledb');
 const http = require('http');
 const bcrypt = require('bcrypt');
 const path = require("path");
 const bodyParser = require('body-parser');
 const users = require('./data').userDB;
-const oracledb = require('oracledb');
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'./public')));
-const oracledb = require('oracledb');
 
+
+app.get('/',(req,res) => {
+    res.sendFile(path.join(__dirname,'./public/index.html'));
+});
 
 async function connectToDatabase() {
     try {
@@ -28,52 +31,31 @@ async function connectToDatabase() {
     }
 }
 
-let con; // Declare con at a higher scope
-
 app.get('/data', async (req, res) => {
     try {
-        con = await oracledb.getConnection({
-            user: "abigail.lin",
-            password: "7yxtZs9hKMS0WxR0XV5MlrnE",
-            connectString: "oracle.cise.ufl.edu:1521/orcl"
-        });
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
 
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        // Prompt user for month input
-        const startMonth = await promptUser(rl, 'Enter start month (1-12): ');
-        const endMonth = await promptUser(rl, 'Enter end month (1-12): ');
-
-        // Prompt user for year input
-        const startYear = await promptUser(rl, 'Enter start year: ');
-        const endYear = await promptUser(rl, 'Enter end year: ');
-
-        // Close readline interface
-        rl.close();
-
-        // SQL query
         const query = `
-        SELECT 
-        IR.cpiYear AS Year,
-        IR.cpiMonth AS Month,
-        IR.cpiValue,
-        SUM(LF.TotalUnemployment) AS TotalUnemployment_AllStates
-    FROM 
-        "NCHINTALAPATI"."USINFLATIONRATES" IR
-    INNER JOIN 
-        "S.KARANTH"."LABORFORCE" LF ON IR.cpiYear = LF.LYEAR AND IR.cpiMonth = LF.LMONTH
-    WHERE 
-        (IR.cpiYear >= 2020 AND IR.cpiYear <= 2023) AND
-        (IR.cpiMonth >= 1 AND IR.cpiMonth <= 12) AND
-        LF.FIPS_Code BETWEEN 1 AND 50  -- Considering FIPS Code 1-50 for states
-    GROUP BY 
-        IR.cpiYear, IR.cpiMonth, IR.cpiValue
-    ORDER BY 
-        IR.cpiYear, IR.cpiMonth;
-    `;
+            SELECT 
+                IR.cpiYear AS Year,
+                IR.cpiMonth AS Month,
+                IR.cpiValue,
+                SUM(LF.TotalUnemployment) AS TotalUnemployment_AllStates
+            FROM 
+                "NCHINTALAPATI"."USINFLATIONRATES" IR
+            INNER JOIN 
+                "S.KARANTH"."LABORFORCE" LF ON IR.cpiYear = LF.LYEAR AND IR.cpiMonth = LF.LMONTH
+            WHERE 
+                (IR.cpiYear BETWEEN :startYear AND :endYear) AND
+                (IR.cpiMonth BETWEEN :startMonth AND :endMonth) AND
+                LF.FIPSCode BETWEEN 1 AND 50 
+            GROUP BY 
+                IR.cpiYear, IR.cpiMonth, IR.cpiValue
+            ORDER BY
+                IR.cpiYear, IR.cpiMonth`
 
         // Define bind variables
         const bindVars = {
@@ -83,37 +65,15 @@ app.get('/data', async (req, res) => {
             endYear: endYear
         };
 
-        // Execute query
+        const con = await connectToDatabase();
         const result = await con.execute(query, bindVars);
 
-        console.log(result.rows);
-    } catch (err) {
-        console.error(err);
-    } finally {
-        if (con) {
-            try {
-                await con.close();
-            } catch (err) {
-                console.error(err);
-            }
-        }
+        await con.close();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-},
-
-function promptUser(rl, question) {
-    return new Promise((resolve, reject) => {
-        rl.question(question, (answer) => {
-            const input = parseInt(answer);
-            if (!isNaN(input)) {
-                resolve(input);
-            } else {
-                console.log('Please enter a valid number.');
-                promptUser(rl, question).then(resolve);
-            }
-        });
-    });
-}
-);
+});
 
 app.post('/register', async (req, res) => {
     try{
@@ -172,3 +132,5 @@ app.post('/login', async (req, res) => {
 server.listen(3000, function(){
     console.log("server is listening on port: 3000");
 });
+
+//https://medium.com/swlh/basic-login-system-with-node-js-99acf02275b9

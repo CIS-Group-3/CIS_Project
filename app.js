@@ -38,6 +38,7 @@ app.get('/data', async (req, res) => {
         var endMonth = req.query.em;
         var endYear = req.query.ey;
         var statesString = req.query.states;
+        var indexChoices = JSON.parse(req.query.userIndices);
         var stringStartMonth;
         var stringEndMonth;
 
@@ -64,25 +65,60 @@ app.get('/data', async (req, res) => {
         const con = await connectToDatabase();
 
         // Construct SQL Query dynamically
-        const indexChoices = ['Low', 'High']; // Include all index choices
-        const statePlaceholders = states.map((_, index) => `:state${index + 1}`).join(', ');
+        //const indexChoices = ['Low', 'High']; // Include all index choices
+        //const statePlaceholders = states.map((_, index) => `:state${index + 1}`).join(', ');
         const query = `
-            SELECT
-                d.dateMonth,
-                d.dateYear,
-                cd.StateName,
-                --Get the average index values dynamically based on indexChoices array
-                --For each element in the indexChoices, can dynamically construct string with template literal
-                --Also use CASE WHEN https://www.w3schools.com/sql/sql_case.asp
-                ${indexChoices.map(choice => `AVG(CASE WHEN '${choice}' IN (${indexChoices.map(choice => `'${choice}'`).join(', ')}) THEN d.${choice} END) AS avg${choice}`).join(', ')},
-                SUM(cd.COVID19Deaths) AS totalCOVIDDeaths
-            FROM DJIndex d
-            JOIN "B.NAKASONE".COVIDDeathReport cd ON d.dateMonth = cd.MonthCOVID AND d.dateYear = cd.YearCOVID
-            WHERE 
-                TO_DATE(d.dateYear || '-' || LPAD(d.dateMonth, 2, '0') || '-' || d.dateDay, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD') 
+
+
+            WITH AverageIndices AS (
+                SELECT
+                    d.dateMonth AS aiMonth,
+                    d.dateYear AS aiYear,
+                    ${indexChoices.map(choice => `AVG(CASE WHEN '${choice}' IN (${indexChoices.map(choice => `'${choice}'`).join(', ')}) THEN d.${choice} END) AS avg${choice}`).join(', ')}
+                FROM DJIndex d
+                WHERE
+                    TO_DATE(d.dateYear || '-' || LPAD(d.dateMonth, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
+                GROUP BY
+                    d.dateMonth,
+                    d.dateYear
+            ),
+                 Deaths AS (
+                     SELECT
+                         cd.MonthCOVID AS cdMonth,
+                         cd.YearCOVID as cdYear,
+                         cd.StateName,
+                         SUM(cd.COVID19Deaths) AS totalCOVIDDeaths
+                     FROM
+                         "B.NAKASONE".COVIDDeathReport cd
+                     WHERE
+                         TO_DATE(cd.YearCOVID || '-' || LPAD(cd.MonthCOVID, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
+                         AND cd.AgeRange = 'All Ages'
                 ${whereClause}
-            GROUP BY d.dateMonth, d.dateYear, cd.StateName
-            ORDER BY d.dateYear, d.dateMonth`;
+            GROUP BY
+                cd.MonthCOVID,
+                cd.YearCOVID,
+                cd.StateName
+                )
+            
+            SELECT
+                ai.aiMonth,
+                ai.aiYear,
+                d.StateName,
+                ${indexChoices.map(choice => `ai.avg${choice}`).join(', ')},
+                d.totalCOVIDDeaths
+            FROM
+                AverageIndices ai JOIN Deaths d ON ai.aiMonth = d.cdMonth AND ai.aiYear = d.cdYear
+            GROUP BY
+                ai.aiMonth,
+                ai.aiYear,
+                d.StateName,
+                ${indexChoices.map(choice => `ai.avg${choice}`).join(', ')},
+                d.totalCOVIDDeaths
+            ORDER BY
+                ai.aiYear,
+                ai.aiMonth
+                
+            `;
 
         //Define bind variables
         const bindVars = {

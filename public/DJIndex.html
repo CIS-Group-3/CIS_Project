@@ -31,6 +31,21 @@
                 <input type="text" class="form-control" id="endDatePicker" readonly>
             </div>
 
+            <div class="index-picker">
+                <div class="checkbox">
+                    <label><input name="High" type="checkbox" value="High">High</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Low" type="checkbox" value="Low">Low</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Open" type="checkbox" value="Open">Open</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Close" type="checkbox" value="Close">Close</label>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -58,6 +73,7 @@
     var endYear;
 
     var sharedStates=[];
+    var userIndices=[];
 
     var placeholder = document.getElementById('myChart');
     var myChart = placeholder.getContext('2d');

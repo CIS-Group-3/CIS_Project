@@ -38,6 +38,19 @@ app.get('/data', async (req, res) => {
         var endMonth = req.query.em;
         var endYear = req.query.ey;
         var statesString = req.query.states;
+        var stringStartMonth;
+        var stringEndMonth;
+
+        if (startMonth.length === 1) {
+            stringStartMonth = '0' + startMonth;
+        }
+
+        if (endMonth.length === 1) {
+            stringEndMonth = '0' + endMonth;
+        }
+
+        const startDate = `${startYear}-${stringStartMonth}-01`;
+        const endDate = `${endYear}-${stringEndMonth}-01`;
 
         var states = JSON.parse(statesString);
 
@@ -65,18 +78,16 @@ app.get('/data', async (req, res) => {
                 SUM(cd.COVID19Deaths) AS totalCOVIDDeaths
             FROM DJIndex d
             JOIN "B.NAKASONE".COVIDDeathReport cd ON d.dateMonth = cd.MonthCOVID AND d.dateYear = cd.YearCOVID
-            WHERE (d.dateMonth BETWEEN :startMonth AND :endMonth)
-              AND (d.dateYear BETWEEN :startYear AND :endYear)
-              ${whereClause}
+            WHERE 
+                TO_DATE(d.dateYear || '-' || LPAD(d.dateMonth, 2, '0') || '-' || d.dateDay, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD') 
+                ${whereClause}
             GROUP BY d.dateMonth, d.dateYear, cd.StateName
             ORDER BY d.dateYear, d.dateMonth`;
 
         //Define bind variables
         const bindVars = {
-            startMonth,
-            endMonth,
-            startYear,
-            endYear
+            startDate,
+            endDate
         };
 
         //Add user-specified input to bind variables

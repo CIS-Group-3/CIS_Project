@@ -55,14 +55,7 @@ app.get('/data', async (req, res) => {
 
         var states = JSON.parse(statesString);
 
-        if (indexChoices.length < 0)
-        {
-            indexChoices = ["Open"];
-        }
-        if (states.length < 0)
-        {
-            states = ["Florida"];
-        }
+
 
 
         //Build the where statement dynamically based on user's input parameters
@@ -73,6 +66,9 @@ app.get('/data', async (req, res) => {
 
         //Connect to the database
         const con = await connectToDatabase();
+
+
+
 
         // Construct SQL Query dynamically
         //const indexChoices = ['Low', 'High']; // Include all index choices
@@ -109,7 +105,6 @@ app.get('/data', async (req, res) => {
                 cd.YearCOVID,
                 cd.StateName
                 )
-            
             SELECT
                 ai.aiMonth,
                 ai.aiYear,
@@ -127,7 +122,6 @@ app.get('/data', async (req, res) => {
             ORDER BY
                 ai.aiYear,
                 ai.aiMonth
-                
             `;
 
         //Define bind variables
@@ -153,6 +147,8 @@ app.get('/data', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+
 app.post('/register', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);

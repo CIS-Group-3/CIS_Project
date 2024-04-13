@@ -119,7 +119,16 @@
                 else {
                     //State(s) selected
                     if (sharedStates.length >=1){
-                        fillChart();
+                        if (userIndices.length <= 0)
+                        {
+                            userIndices = ["High"];
+                            fillChart();
+                            userIndices = [];
+                        }
+                        else
+                        {
+                            fillChart();
+                        }
                     }
                 }
             }
@@ -144,7 +153,16 @@
                 }
                 else {
                     if (sharedStates.length >=1){
-                        fillChart();
+                        if (userIndices.length <= 0)
+                        {
+                            userIndices = ["High"];
+                            fillChart();
+                            userIndices = [];
+                        }
+                        else
+                        {
+                            fillChart();
+                        }
                     }
                 }
 
@@ -194,6 +212,7 @@
     //Show the chart and fill with my data
     async function fillChart(){
         try{
+
             startDate = $('#startDatePicker').datepicker('getDate');
             endDate = $('#endDatePicker').datepicker('getDate');
             //console.log("date: "+startDate.getMonth());
@@ -218,7 +237,17 @@
                 const state = row[2];
                 const year = row[1];
                 const month = row[0];
-                const totalDeaths = row[userIndices.length + 3];
+                var totalDeaths;
+
+                if (userIndices.length <= 0)
+                {
+                    totalDeaths = row[userIndices.length + 4];
+                }
+                else
+                {
+                    totalDeaths = row[userIndices.length + 3];
+                }
+
 
                 const monthyear = `${month}/${year}`;
                 if (!uniqueMonths.includes(monthyear)) {
@@ -286,6 +315,7 @@
 
     async function generateIndexCharts() {
         for (let index = 0; index < userIndices.length; index++) {
+
             startDate = $('#startDatePicker').datepicker('getDate');
             endDate = $('#endDatePicker').datepicker('getDate');
 
@@ -331,11 +361,12 @@
                 }
 
                 const indexExists = totalData.find(data => data.x === monthyear);
-                if (indexExists) {
-                    indexExists.y += currIndex;
-                } else {
+                if (!indexExists)
+                {
                     totalData.push({ x: monthyear, y: currIndex });
+
                 }
+
             });
 
             const totalDataset = {
@@ -383,16 +414,18 @@
     //Function to fetch data from the server and display it in the console as tuples
     async function fetchData() {
         try {
+
             const sharedString = JSON.stringify(sharedStates);
             const userIndicesString = JSON.stringify(userIndices);
 
-            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&userIndices=${userIndicesString}`
+            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&userIndices=${userIndicesString}&states=${sharedString}`
             const response = await fetch(url);
             data = await response.json();
 
             console.log(data);
 
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Error fetching data:', error);
         }
     }
@@ -410,7 +443,16 @@
                 }
             }
         }
-        fillChart();
+        if (userIndices.length <= 0)
+        {
+            userIndices = ["High"];
+            fillChart();
+            userIndices = [];
+        }
+        else
+        {
+            fillChart();
+        }
     }
 
     function removeSharedStates(state){
@@ -434,7 +476,16 @@
         }
 
         if (sharedStates.length >=1){
-            fillChart();
+            if (userIndices.length <= 0)
+            {
+                userIndices = ["High"];
+                fillChart();
+                userIndices = [];
+            }
+            else
+            {
+                fillChart();
+            }
         }
         else{
             //console.log("chart should be empty");

@@ -6,14 +6,14 @@ const path = require("path");
 const bodyParser = require('body-parser');
 const users = require('./data').userDB;
 
-const app = express();
-const server = http.createServer(app);
+const appDJIndex = express();
+const server = http.createServer(appDJIndex);
 
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static(path.join(__dirname,'./public')));
+appDJIndex.use(bodyParser.urlencoded({extended: false}));
+appDJIndex.use(express.static(path.join(__dirname,'./public')));
 
 
-app.get('/',(req,res) => {
+appDJIndex.get('/',(req, res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
 });
 
@@ -31,7 +31,7 @@ async function connectToDatabase() {
     }
 }
 
-app.get('/data', async (req, res) => {
+appDJIndex.get('/data', async (req, res) => {
     try {
         var startMonth = req.query.sm;
         var startYear = req.query.sy;
@@ -55,9 +55,6 @@ app.get('/data', async (req, res) => {
 
         var states = JSON.parse(statesString);
 
-
-
-
         //Build the where statement dynamically based on user's input parameters
         let whereClause = '';
         if (states.length > 0) {
@@ -66,9 +63,6 @@ app.get('/data', async (req, res) => {
 
         //Connect to the database
         const con = await connectToDatabase();
-
-
-
 
         // Construct SQL Query dynamically
         //const indexChoices = ['Low', 'High']; // Include all index choices
@@ -147,7 +141,7 @@ app.get('/data', async (req, res) => {
 });
 
 
-app.post('/register', async (req, res) => {
+appDJIndex.post('/register', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);
         if (!foundUser) {
@@ -172,7 +166,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+appDJIndex.post('/login', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);
         if (foundUser) {

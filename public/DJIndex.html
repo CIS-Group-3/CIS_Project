@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8">
+    <title> DJIndex </title>
+    <link rel="stylesheet" href="DJIndex.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--for map-->
+    <script src="mapdata.js"></script>
+    <script src="usmap.js"></script>
+    <script src="select.js"></script>
+    <!--for chart-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <!--for datepicker-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+</head>
+<body>
+<div class="container">
+    <div id="option-holder">
+        <div id="instructions">Select state(s) and time range to view the chart.</div>
+        <div id="dateArea">
+            <div id="startDate">
+                select start date:
+                <input type="text" class="form-control" id="startDatePicker" readonly>
+            </div>
+            <div id="endDate">
+                select end date:
+                <input type="text" class="form-control" id="endDatePicker" readonly>
+            </div>
+
+            <div class="index-picker">
+                <div class="checkbox">
+                    <label><input name="High" type="checkbox" value="High">High</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Low" type="checkbox" value="Low">Low</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Open" type="checkbox" value="Open">Open</label>
+                </div>
+                <div class="checkbox">
+                    <label><input name="Close" type="checkbox" value="Close">Close</label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="my-map-holder">
+        <div id="statesSelected">States selected: </div>
+        <div id="map"></div>
+    </div>
+
+    <div id="chart-holder">
+        <canvas id="totalDeathsChart"></canvas>
+        <canvas id="HighChart"></canvas>
+        <canvas id="LowChart"></canvas>
+        <canvas id="OpenChart"></canvas>
+        <canvas id="CloseChart"></canvas>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/en-gb.min.js"></script>
+
+
+<script>
+    var data;
+    var startMonth;
+    var startYear;
+    var endMonth;
+    var endYear;
+
+    var sharedStates=[];
+    var userIndices=[];
+
+    var placeholderDeaths = document.getElementById('totalDeathsChart');
+    var totalDeathsChart = placeholderDeaths.getContext('2d');
+
+    var placeholderHigh = document.getElementById('HighChart');
+    var HighChart = placeholderHigh.getContext('2d');
+
+    var placeholderLow = document.getElementById('LowChart');
+    var LowChart = placeholderLow.getContext('2d');
+
+    var placeholderOpen = document.getElementById('OpenChart');
+    var OpenChart = placeholderOpen.getContext('2d');
+
+    var placeholderClose = document.getElementById('CloseChart');
+    var CloseChart = placeholderClose.getContext('2d');
+
+    var lineChart;
+    var indexHighChart;
+    var indexLowChart;
+    var indexOpenChart;
+    var indexCloseChart;
+
+    $(document).ready(function(){
+        $('#startDatePicker').datepicker({
+            format: "MM yyyy",
+            startView: "months",
+            minViewMode: "months",
+            autoclose: true,
+        }).on('changeDate', function(e){
+            if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.length >=1){
+
+                var startDate = $('#startDatePicker').datepicker('getDate');
+                var endDate = $('#endDatePicker').datepicker('getDate');
+                if (startDate >= endDate) {
+                    alert("Start date must be before end date.");
+                    //Reseting the start date to the previous value
+                    $(this).val('');
+                }
+                else {
+                    //State(s) selected
+                    if (sharedStates.length >=1){
+                        if (userIndices.length <= 0)
+                        {
+                            userIndices = ["High"];
+                            fillChart();
+                            userIndices = [];
+                        }
+                        else
+                        {
+                            fillChart();
+                        }
+                    }
+                }
+            }
+
+
+        });
+
+        $('#endDatePicker').datepicker({
+            format: "MM yyyy",
+            startView: "months",
+            minViewMode: "months",
+            autoclose: true
+        }).on('changeDate', function(e){
+            if ($('#startDatePicker').datepicker('getDate') != null){
+
+                var startDate = $('#startDatePicker').datepicker('getDate');
+                var endDate = $('#endDatePicker').datepicker('getDate');
+                if (startDate >= endDate) {
+                    alert("Start date must be before end date.");
+                    // Reset the start date to the previous value
+                    $(this).val('');
+                }
+                else {
+                    if (sharedStates.length >=1){
+                        if (userIndices.length <= 0)
+                        {
+                            userIndices = ["High"];
+                            fillChart();
+                            userIndices = [];
+                        }
+                        else
+                        {
+                            fillChart();
+                        }
+                    }
+                }
+
+            }
+
+        });
+    });
+
+    //Function to handle checkboxes, update the userIndices array
+    function updateIndices() {
+        userIndices = []; // Reset the array
+        $('input[type=checkbox]:checked').each(function(index) {
+            const indexValue = $(this).val();
+            userIndices.push(indexValue);
+        });
+
+        if (sharedStates.length <= 0)
+        {
+            sharedStates = ["Florida"];
+            generateIndexCharts();
+            sharedStates = [];
+        }
+        else
+        {
+            generateIndexCharts()
+        }
+
+
+    }
+
+    //Call the updateIndices function when checkbox is checked/unchecked
+    $(document).ready(function() {
+        $('input[type=checkbox]').change(function() {
+            updateIndices();
+        });
+    });
+
+    $(document).ready(function() {
+        $('input[type=checkbox]').change(function() {
+            if (!this.checked) {
+                const chartId = $(this).val() + 'Chart';
+                hideChart(chartId);
+            }
+        });
+    });
+
+    //Show the chart and fill with my data
+    async function fillChart(){
+        try{
+
+            startDate = $('#startDatePicker').datepicker('getDate');
+            endDate = $('#endDatePicker').datepicker('getDate');
+            //console.log("date: "+startDate.getMonth());
+
+            startMonth = startDate.getMonth() +1;
+            startYear = startDate.getFullYear();
+            endMonth = endDate.getMonth()+1;
+            endYear = endDate.getFullYear();
+
+            console.log(startMonth, startYear, endMonth, endYear);
+
+            await fetchData();
+
+            //make chart visible, if needed.
+            placeholderDeaths.style.display = 'block';
+
+            //groups data by the state
+            let datasets = {};
+            var uniqueMonths = [];
+
+            data.rows.forEach(row => {
+                const state = row[2];
+                const year = row[1];
+                const month = row[0];
+                var totalDeaths;
+
+                if (userIndices.length <= 0)
+                {
+                    totalDeaths = row[userIndices.length + 4];
+                }
+                else
+                {
+                    totalDeaths = row[userIndices.length + 3];
+                }
+
+
+                const monthyear = `${month}/${year}`;
+                if (!uniqueMonths.includes(monthyear)) {
+                    uniqueMonths.push(monthyear);
+                }
+
+
+                if (!datasets[state]) {
+                    datasets[state] = {
+                        label: state,
+                        data: [],
+                        //Random color for each dataset, aka state
+                        backgroundColor: `rgba(0, 0, 0, 0)`,
+                        borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                        borderWidth: 2
+                    };
+                }
+
+                datasets[state].data.push({
+                    x: `${month}/${year}`,
+                    y: totalDeaths
+                });
+            });
+
+            const datasetsArray = Object.values(datasets);
+
+            if (lineChart) {
+                //Update chart data and options
+                lineChart.data.labels = uniqueMonths;
+                lineChart.data.datasets = datasetsArray;
+                lineChart.update();
+            } else {
+                //Create a new chart
+                lineChart = new Chart(totalDeathsChart, {
+                    type: 'line',
+                    data: {
+                        labels: uniqueMonths,
+                        datasets: datasetsArray
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Time (Months)'
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Total COVID Deaths Reported'
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+
+
+
+        } catch (error) {
+            console.error('Error filling chart:', error);
+        }
+    }
+
+    async function generateIndexCharts() {
+        for (let index = 0; index < userIndices.length; index++) {
+
+            startDate = $('#startDatePicker').datepicker('getDate');
+            endDate = $('#endDatePicker').datepicker('getDate');
+
+            startMonth = startDate.getMonth() + 1;
+            startYear = startDate.getFullYear();
+            endMonth = endDate.getMonth() + 1;
+            endYear = endDate.getFullYear();
+
+            await fetchData();
+
+            const currentIndex = userIndices[index];
+
+            let placeholderChart;
+            let currChart;
+
+            if (currentIndex === 'High') {
+                placeholderChart = placeholderHigh;
+                currChart = indexHighChart;
+            } else if (currentIndex === 'Low') {
+                placeholderChart = placeholderLow;
+                currChart = indexLowChart;
+            } else if (currentIndex === 'Open') {
+                placeholderChart = placeholderOpen;
+                currChart = indexOpenChart;
+            } else if (currentIndex === 'Close') {
+                placeholderChart = placeholderClose;
+                currChart = indexCloseChart;
+            }
+
+            placeholderChart.style.display = 'block';
+
+            let totalData = [];
+            let uniqueMonths = [];
+
+            data.rows.forEach(row => {
+                const year = row[1];
+                const month = row[0];
+                const currIndex = row[index + 3];
+
+                const monthyear = `${month}/${year}`;
+                if (!uniqueMonths.includes(monthyear)) {
+                    uniqueMonths.push(monthyear);
+                }
+
+                const indexExists = totalData.find(data => data.x === monthyear);
+                if (!indexExists)
+                {
+                    totalData.push({ x: monthyear, y: currIndex });
+
+                }
+
+            });
+
+            const totalDataset = {
+                label: 'Total US',
+                data: totalData,
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                borderWidth: 2
+            };
+
+            if (currChart) {
+                currChart.data.labels = uniqueMonths;
+                currChart.data.datasets = [totalDataset];
+                currChart.update();
+            } else {
+                currChart = new Chart(`${currentIndex}Chart`, {
+                    type: 'line',
+                    data: {
+                        labels: uniqueMonths,
+                        datasets: [totalDataset]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Time (Months)'
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: `Dow Jones Monthly Average ${currentIndex} Index`
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
+
+    //Function to fetch data from the server and display it in the console as tuples
+    async function fetchData() {
+        try {
+
+            const sharedString = JSON.stringify(sharedStates);
+            const userIndicesString = JSON.stringify(userIndices);
+
+            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&userIndices=${userIndicesString}&states=${sharedString}`
+            const response = await fetch(url);
+            data = await response.json();
+
+            console.log(data);
+
+        }
+        catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    function writeSharedStates(state){
+        sharedStates.push(state);
+        //console.log("shared: " +sharedStates);
+
+        document.getElementById('statesSelected').innerHTML = "States selected: "
+        if (sharedStates.length >=1){
+            for(i=0;i<sharedStates.length;i++){
+                document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                if (i<sharedStates.length-1){
+                    document.getElementById('statesSelected').innerHTML += `,`;
+                }
+            }
+        }
+        if (userIndices.length <= 0)
+        {
+            userIndices = ["High"];
+            fillChart();
+            userIndices = [];
+        }
+        else
+        {
+            fillChart();
+        }
+    }
+
+    function removeSharedStates(state){
+        //console.log("sharedstates: "+sharedStates);
+
+        const index = sharedStates.indexOf(state);
+        //console.log("index:"+index);
+        if (index != -1) {
+            sharedStates.splice(index, 1);
+        }
+        //console.log("sharedstates: "+sharedStates);
+
+        document.getElementById('statesSelected').innerHTML = "States selected: "
+        if (sharedStates.length >=1){
+            for(i=0;i<sharedStates.length;i++){
+                document.getElementById('statesSelected').innerHTML += ` ${sharedStates[i]}`;
+                if (i<sharedStates.length-1){
+                    document.getElementById('statesSelected').innerHTML += `,`;
+                }
+            }
+        }
+
+        if (sharedStates.length >=1){
+            if (userIndices.length <= 0)
+            {
+                userIndices = ["High"];
+                fillChart();
+                userIndices = [];
+            }
+            else
+            {
+                fillChart();
+            }
+        }
+        else{
+            //console.log("chart should be empty");
+            placeholderDeaths.style.display = 'none';
+        }
+    }
+
+    function hideChart(chartId) {
+        const chartCanvas = document.getElementById(chartId);
+        if (chartCanvas) {
+            chartCanvas.style.display = 'none';
+        }
+    }
+
+
+</script>
+</body>
+
+</html>

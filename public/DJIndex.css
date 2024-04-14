@@ -1,5 +1,8 @@
-{
+a{
     font-size: 40px;
+}
+#tabs-holder{
+    width:100%;
 }
 #option-holder{
     height:130px;

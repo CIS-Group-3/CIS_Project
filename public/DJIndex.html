@@ -418,7 +418,7 @@
             const sharedString = JSON.stringify(sharedStates);
             const userIndicesString = JSON.stringify(userIndices);
 
-            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&userIndices=${userIndicesString}&states=${sharedString}`
+            const url = `/dataDJ?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&userIndices=${userIndicesString}&states=${sharedString}`
             const response = await fetch(url);
             data = await response.json();
 

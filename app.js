@@ -74,8 +74,6 @@ app.get('/data', async (req, res) => {
         //const indexChoices = ['Low', 'High']; // Include all index choices
         //const statePlaceholders = states.map((_, index) => `:state${index + 1}`).join(', ');
         const query = `
-
-
             WITH AverageIndices AS (
                 SELECT
                     d.dateMonth AS aiMonth,

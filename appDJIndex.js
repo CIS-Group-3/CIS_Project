@@ -31,7 +31,7 @@ async function connectToDatabase() {
     }
 }
 
-appDJIndex.get('/data', async (req, res) => {
+appDJIndex.get('/dataDJ', async (req, res) => {
     try {
         var startMonth = req.query.sm;
         var startYear = req.query.sy;

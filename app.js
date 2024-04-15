@@ -254,6 +254,44 @@ app.get('/unemployment', async (req, res) => {
     }
 });
 
+app.get('/crimerate', async (req, res) => {
+    try {
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+
+        whereClause = ``; 
+
+        if (startYear < endYear){
+            whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+            OR (LYear > ${startYear} AND LYear < ${endYear})
+            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        }
+        else{
+            whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
+        }
+
+        console.log("where: " +whereClause);
+
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
+            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)/100000, 2) as "USAvgUnemployment" 
+            FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
+            (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
+            "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
+            WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
+            ORDER BY lyear, lmonth`
+        );
+
+        await con.close();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post('/register', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);

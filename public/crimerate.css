@@ -1,0 +1,30 @@
+a{
+    font-size: 40px;
+}
+#tabs-holder{
+    width:100%;
+}
+ #option-holder{
+    height:130px;
+    width:100%;
+} 
+#chart-holder{
+    float:left;
+    height:700px;
+    width: 50%;
+}
+#chart1-holder{
+    float:right;
+    height:700px;
+    width: 50%;
+}
+#startDate{
+    float:left;
+    width:200px;
+}
+
+#endDate{
+    float:left;
+    padding-left: 30px;
+    width:200px;
+}

@@ -72,11 +72,24 @@ app.get('/data', async (req, res) => {
 
         const con = await connectToDatabase();
         const result = await con.execute(
-            `SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
-            FROM "S.KARANTH"."LABORFORCE" 
-            WHERE (${whereClause})
-            GROUP BY StateOrArea, LYear, LMonth
-            ORDER BY StateOrArea, LYear, LMonth`
+            `SELECT StateOrArea, LYear, LMonth, Average_Unemployment_Rate, Conditiongroup, Deaths
+            FROM(
+                SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
+                FROM "S.KARANTH"."LABORFORCE" 
+                WHERE (${whereClause})
+                GROUP BY StateOrArea, LYear, LMonth
+                ORDER BY LYear, LMonth
+            ) query1
+            INNER JOIN(
+                SELECT YEARCOVID, MONTHCOVID, Statename, Conditiongroup, SUM(Covid19deaths) AS Deaths
+                FROM "B.NAKASONE"."COVIDDEATHREPORT"
+                WHERE Statename != 'United States'  
+                GROUP BY YEARCOVID, MONTHCOVID, Statename, Conditiongroup
+                ORDER BY YEARCOVID, MONTHCOVID, Statename
+            ) query2
+            ON query1.LYear = query2.YEARCOVID
+            AND query1.LMonth = query2.MONTHCOVID
+            AND query1.StateOrArea = query2.Statename`
         );
 
         await con.close();

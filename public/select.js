@@ -118,15 +118,23 @@
           }        
         }
         else{ //select on click
-          alert("the state is:" + state);
           var index=selected.indexOf(state);   
           if (index > -1){ //deselect state
             deselect(state);
+
+            removeSharedStates(state);
           }
           else{ //select state
             select(state);
+
+            writeSharedStates(state);
           }
         }
+        handleStateClick();
+      }
+
+      function handleStateClick() {
+        updateChart();
       }
       
       map.plugin_hooks.click_state.push(upon_click);   

@@ -73,7 +73,7 @@ app.get('/dataDJ', async (req, res) => {
                     d.dateMonth AS aiMonth,
                     d.dateYear AS aiYear,
                     ${indexChoices.map(choice => `AVG(CASE WHEN '${choice}' IN (${indexChoices.map(choice => `'${choice}'`).join(', ')}) THEN d.${choice} END) AS avg${choice}`).join(', ')}
-                FROM DJIndex d
+                FROM "ABIGAIL.LIN".DJIndex d
                 WHERE
                     TO_DATE(d.dateYear || '-' || LPAD(d.dateMonth, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
                 GROUP BY

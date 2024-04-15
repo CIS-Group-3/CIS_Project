@@ -1,4 +1,4 @@
-a{
+{
     font-size: 40px;
 }
 #tabs-holder{
@@ -36,4 +36,12 @@ a{
     float:left;
     padding-left: 30px;
     width:200px;
+}
+.index-picker {
+    clear: both;
+}
+
+.checkbox {
+    display: inline-block;
+    margin-right: 20px;
 }

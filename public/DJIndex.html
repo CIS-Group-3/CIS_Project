@@ -55,15 +55,18 @@
         <div id="instructions">Select state(s) and time range to view the chart.</div>
         <div id="dateArea">
             <div id="startDate">
-                select start date:
+                Select start date:
                 <input type="text" class="form-control" id="startDatePicker" readonly>
             </div>
             <div id="endDate">
-                select end date:
+                Select end date:
                 <input type="text" class="form-control" id="endDatePicker" readonly>
             </div>
 
             <div class="index-picker">
+                These are the Dow Jones stock market indices graph options. Select from 0-4 boxes.
+                You may select and deselect.
+                <br />
                 <div class="checkbox">
                     <label><input name="High" type="checkbox" value="High">High</label>
                 </div>
@@ -81,8 +84,13 @@
         </div>
     </div>
 
+    <br />
+
     <div id="my-map-holder">
-        <div id="statesSelected">States selected: </div>
+        <div id="statesSelected">
+            Click on the map below to select and deselect states to see the total deaths over time.
+            <br />
+            States selected: </div>
         <div id="map"></div>
     </div>
 
@@ -133,11 +141,17 @@
     var indexCloseChart;
 
     $(document).ready(function(){
+
+        var minDate = new Date(2019, 12, 31);
+        var maxDate = new Date(2023, 8, 30);
+
         $('#startDatePicker').datepicker({
             format: "MM yyyy",
             startView: "months",
             minViewMode: "months",
             autoclose: true,
+            startDate: minDate,
+            endDate: maxDate
         }).on('changeDate', function(e){
             if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.length >=1){
 
@@ -172,7 +186,9 @@
             format: "MM yyyy",
             startView: "months",
             minViewMode: "months",
-            autoclose: true
+            autoclose: true,
+            startDate: minDate,
+            endDate: maxDate
         }).on('changeDate', function(e){
             if ($('#startDatePicker').datepicker('getDate') != null){
 

@@ -15,7 +15,7 @@
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="container">
+<div id="container">
     <div id="tab-holder">
         <div class="row">
             <div class="col">
@@ -27,7 +27,7 @@
                     <a class="nav-link" href="#placeholder" data-toggle="tab">COVID</a>
                     </li>
                     <li class="nav-item">
-                    <a class="nav-link active" href="./unemployment.html" data-toggle="tab">Unemployment</a>
+                    <a class="nav-link" href="./unemployment.html" data-toggle="tab">Unemployment</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="./DJIndex.html" data-toggle="tab">Stock Market</a>
@@ -36,7 +36,7 @@
                         <a class="nav-link" href="#placeholder" data-toggle="tab">Crime</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./inflation.html" data-toggle="tab">CPI</a>
+                        <a class="nav-link active" href="./inflation.html" data-toggle="tab">CPI</a>
                     </li>
                     <li class="nav-item" style="width:30px !important;" >
                         <a class="nav-link" href="#placeholder" data-toggle="tab">
@@ -236,7 +236,7 @@
     // Function to fetch data from the server and display it in the table
     async function fetchData() {
         try {
-            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}`;
+            const url = `/inflation?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}`;
 
             const response = await fetch(url);
             data = await response.json();

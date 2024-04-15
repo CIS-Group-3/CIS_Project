@@ -1,0 +1,26 @@
+#covid {
+    margin: 0;
+    padding: 0;
+    background-image: url('covid.jpg'); 
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat; 
+    height: 100vh; 
+    
+}
+
+#holder{
+    background-color: white;
+    font-size: 24px;
+    height:200px;
+    width:400px;
+    text-align: center;     
+}
+
+.link{
+    margin-top: 20px;
+}
+
+#mylink{
+    font-size: 25px;
+}

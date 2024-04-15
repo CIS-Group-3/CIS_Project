@@ -140,7 +140,7 @@ app.get('/dataDJ', async (req, res) => {
     }
 });
 
-app.get('/data', async (req, res) => {
+app.get('/inflation', async (req, res) => {
 
     try {
         var startMonth = req.query.sm;
@@ -177,6 +177,75 @@ app.get('/data', async (req, res) => {
 
         const con = await connectToDatabase();
         const result = await con.execute(query, bindVars);
+
+        await con.close();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+app.get('/unemployment', async (req, res) => {
+    try {
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        var statesString = req.query.states;
+
+        var states = JSON.parse(statesString);
+
+        console.log("states are: "+states);
+
+        whereClause = ``; 
+
+        if (Object.keys(states).length >= 1){
+            whereClause = `(StateOrArea = '${states[0]}'`;
+        }
+        
+        for (i =1; i<Object.keys(states).length; i++){
+            whereClause += ` OR `;
+            whereClause += `StateOrArea = '${states[i]}'`; 
+        }
+
+        if (Object.keys(states).length >= 1){
+            whereClause += `) AND `;
+        }
+
+        
+        if (startYear < endYear){
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth})
+            OR (LYear > ${startYear} AND LYear < ${endYear})
+            OR (LYear = ${endYear} AND LMonth <= ${endMonth}))`;
+        }
+        else{
+            whereClause += ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
+        }
+
+        console.log("where: " +whereClause);
+
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT StateOrArea, LYear, LMonth, Average_Unemployment_Rate, Conditiongroup, Deaths
+            FROM(
+                SELECT StateOrArea, LYear, LMonth, AVG(PercentUnemployment) AS Average_Unemployment_Rate 
+                FROM "S.KARANTH"."LABORFORCE" 
+                WHERE (${whereClause})
+                GROUP BY StateOrArea, LYear, LMonth
+                ORDER BY LYear, LMonth
+            ) query1
+            INNER JOIN(
+                SELECT YEARCOVID, MONTHCOVID, Statename, Conditiongroup, SUM(Covid19deaths) AS Deaths
+                FROM "B.NAKASONE"."COVIDDEATHREPORT"
+                WHERE Statename != 'United States'  
+                GROUP BY YEARCOVID, MONTHCOVID, Statename, Conditiongroup
+                ORDER BY YEARCOVID, MONTHCOVID, Statename
+            ) query2
+            ON query1.LYear = query2.YEARCOVID
+            AND query1.LMonth = query2.MONTHCOVID
+            AND query1.StateOrArea = query2.Statename`
+        );
 
         await con.close();
         res.json(result);

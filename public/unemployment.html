@@ -16,97 +16,130 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <!--for tabs-->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
-    rel="stylesheet">
-
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  	
 </head>
 <body>
-<div id="container">
-    <div id="tab-holder">
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs nav-fill">
-                    <li class="nav-item">
+    <div id="container">
+        <div id="tab-holder">
+            <div class="row">
+                <div class="col">
+                    <ul class="nav nav-tabs nav-fill">
+                        <li class="nav-item">
                         <a class="nav-link" href="./index.html" data-toggle="tab">Home/ Login</a>
-                    </li>
-                    <li class="nav-item">
+                        </li>
+                        <li class="nav-item">
                         <a class="nav-link" href="#placeholder" data-toggle="tab">COVID</a>
-                    </li>
-                    <li class="nav-item">
+                        </li>
+                        <li class="nav-item">
                         <a class="nav-link active" href="./unemployment.html" data-toggle="tab">Unemployment</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./DJIndex.html" data-toggle="tab">Stock Market</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#placeholder" data-toggle="tab">Crime</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./inflation.html" data-toggle="tab">CPI</a>
-                    </li>
-                    <li class="nav-item" style="width:30px !important;" >
-                        <a class="nav-link" href="#placeholder" data-toggle="tab">
-                            <img style="width:25px;" src="./profileicon.png" alt="Profile Icon" title="icon">
-                        </a>
-                    </li>
-                </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./DJIndex.html" data-toggle="tab">Stock Market</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#placeholder" data-toggle="tab">Crime</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./inflation.html" data-toggle="tab">CPI</a>
+                        </li>
+                        <li class="nav-item" style="width:30px !important;" >
+                            <a class="nav-link" href="#placeholder" data-toggle="tab">
+                                <img style="width:25px;" src="./profileicon.png" alt="Profile Icon" title="icon">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="side-area">
+            <div id="option-holder">
+                <br>
+                <div id="instructions" >Select state(s), condition, and date range to view the charts.</div>
+                
+                <div id="dateArea">                
+                    <div id="startDate">
+                        <div style="float:left">From:</div>
+                        <input style="float:right; width:160px" type="text" class="form-control" id="startDatePicker" readonly>
+                    </div>
+                    <div id="endDate">
+                        <div style="float:left">To:</div>
+                        <input style="float:right; width:160px" type="text" class="form-control" id="endDatePicker" readonly>
+                    </div>
+
+                </div>
+                <div id="conditionArea">
+                    <div style="float:left">Select Condition:</div>
+                    <select id="dropdown">
+                        <option value="null" style="color: gray;">Select</option>
+                        <option value="All other conditions and causes (residual)">All other conditions and causes (residual)</option>
+                        <option value="Alzheimer disease">Alzheimer disease</option>
+                        <option value="COVID-19">COVID-19</option>
+                        <option value="Circulatory diseases">Circulatory diseases</option>
+                        <option value="Diabetes">Diabetes</option>
+                        <option value="Intentional and unintentional injury, poisoning, and other adverse events">Intentional and unintentional injury, poisoning, and other adverse events</option>
+                        <option value="Malignant neoplasms">Malignant neoplasms</option>
+                        <option value="Obesity">Obesity</option>
+                        <option value="Renal failure">Renal failure</option>
+                        <option value="Respiratory diseases">Respiratory diseases</option>
+                        <option value="Sepsis">Sepsis</option>
+                        <option value="Vascular and unspecified dementia">Vascular and unspecified dementia</option>
+                    </select>
+                      
+                </div>
+            </div>
+
+            <div id="my-map-holder">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <div id="chart-area">
+            <div class="chart-holder">
+                <canvas class="chart" id="myChart2"></canvas>
+            </div>
+            <div class="chart-holder">
+                <canvas class="chart" id="myChart"></canvas>
             </div>
         </div>
     </div>
-    <div id="option-holder">
-        <div id="instructions">Select time range to view the chart.</div>
-        <div id="dateArea">                
-            <div id="startDate">
-                select start date:
-                  <input type="text" class="form-control" id="startDatePicker" readonly>
-            </div>
-            <div id="endDate">
-                select end date:
-                  <input type="text" class="form-control" id="endDatePicker" readonly>
-            </div>
-        </div>
-    </div>
 
-    <div id="chart-holder">
-        <canvas id="myChart"></canvas>
-    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/en-gb.min.js"></script>
 
-    <div id="chart1-holder">
-        <canvas id="myChart1"></canvas>
-    </div>
-</div>
+    <script>
+        var data;
+        var startMonth;
+        var startYear;
+        var endMonth;
+        var endYear;
+
+        var sharedStates=[];
+
+        var placeholder = document.getElementById('myChart');
+        var myChart = placeholder.getContext('2d');
+        var placeholder2 = document.getElementById('myChart2');
+        var myChart2 = placeholder2.getContext('2d');
+
+        var empChart;
+        var deathChart;
+
+        const dropdown = document.getElementById('dropdown');
+        var selectedCondition ='null';
+
+        dropdown.addEventListener('change', function() {
+            ensureSelected();
+        });
 
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/en-gb.min.js"></script>
+        function ensureSelected(){
+            console.log("ensure called");
+            selectedCondition = dropdown.value;
+            console.log("selected: "+selectedCondition);
 
-<script>
-    var data;
-    var startMonth;
-    var startYear;
-    var endMonth;
-    var endYear;
-
-    var sharedStates=[];
-
-    var placeholder = document.getElementById('myChart');
-    var myChart = placeholder.getContext('2d');
-
-    var lineChart;
-
-    $(document).ready(function(){
-        var maxDate = new Date(2022, 11, 31);
-
-        $('#startDatePicker').datepicker({
-            format: "MM yyyy",
-            startView: "months",
-            minViewMode: "months",
-            autoclose: true,
-            endDate: maxDate,
-        }).on('changeDate', function(e){
-            if ($('#endDatePicker').datepicker('getDate') != null && sharedStates.length >=1){
+            if ($('#startDatePicker').datepicker('getDate') != null && $('#endDatePicker').datepicker('getDate') != null){
 
                 var startDate = $('#startDatePicker').datepicker('getDate');
                 var endDate = $('#endDatePicker').datepicker('getDate');
@@ -115,177 +148,272 @@
                     // Reset the start date to the previous value
                     $(this).val('');
                 } else {
-                    if (sharedStates.length >=1){ //state(s) selected
+                    if (sharedStates.length >=1 && selectedCondition != 'null'){ //state(s) and condition selected
                         fillChart();
                     }
                 }
-            }
+                }
+        }
+
+
+        $(document).ready(function(){
+            var minDate = new Date(2019, 12, 31);
+            var maxDate = new Date(2022, 11, 31);
+            
+            $('#startDatePicker').datepicker({
+                format: "MM yyyy",
+                startView: "months", 
+                minViewMode: "months",
+                autoclose: true,
+                startDate: minDate,
+                endDate: maxDate,
+                }).on('changeDate', function(e){
+                        ensureSelected();
+                    });
+                
+            $('#endDatePicker').datepicker({
+                format: "MM yyyy",
+                startView: "months", 
+                minViewMode: "months",
+                autoclose: true,
+                startDate: minDate,
+                endDate: maxDate,
+                }).on('changeDate', function(e){
+                        ensureSelected();
+                    });
         });
 
-        $('#endDatePicker').datepicker({
-            format: "MM yyyy",
-            startView: "months",
-            minViewMode: "months",
-            autoclose: true,
-            endDate: maxDate,
-        }).on('changeDate', function(e){
-            if ($('#startDatePicker').datepicker('getDate') != null){
+        //show chart
+        async function fillChart(){
+            try{
+                startDate = $('#startDatePicker').datepicker('getDate');
+                endDate = $('#endDatePicker').datepicker('getDate');
+                //console.log("date: "+startDate.getMonth());
 
-                var startDate = $('#startDatePicker').datepicker('getDate');
-                var endDate = $('#endDatePicker').datepicker('getDate');
-                if (startDate >= endDate) {
-                    alert("Start date must be before end date.");
-                    // Reset the start date to the previous value
-                    $(this).val('');
-                } else {
-                    if (sharedStates.length >=1){ //state(s) selected
-                        fillChart();
+                startMonth = startDate.getMonth() +1;
+                startYear = startDate.getFullYear();
+                endMonth = endDate.getMonth()+1;
+                endYear = endDate.getFullYear();
+
+                await fetchData();
+
+                placeholder.style.display = 'block'; //make chart visible if needed.
+                placeholder2.style.display = 'block'; //make chart visible if needed.
+
+
+                let datasets = {}; //groups data by state
+                let conditionDatasets = {}; //groups data by conditions and states
+                var uniqueMonths = [];
+                
+                data.rows.forEach(row => {
+                    const state = row[0];
+                    const year = row[1];
+                    const month = row[2];
+                    const rate = row[3];
+                    const condition = row[4];
+                    const deaths = row[5];
+
+                    const monthyear = `${month}/${year}`;
+                    if (!uniqueMonths.includes(monthyear)) {
+                        uniqueMonths.push(monthyear);
                     }
-                }
-            }
-        });
-    });
 
-    //show chart
-    async function fillChart(){
-        try{
-            startDate = $('#startDatePicker').datepicker('getDate');
-            endDate = $('#endDatePicker').datepicker('getDate');
 
-            startMonth = startDate.getMonth() +1;
-            startYear = startDate.getFullYear();
-            endMonth = endDate.getMonth()+1;
-            endYear = endDate.getFullYear();
-
-            await fetchData();
-
-            placeholder.style.display = 'block'; //make chart visible if needed.
-
-            let datasets = {}; //groups data by state
-            var uniqueMonths = [];
-
-            data.rows.forEach(row => {
-                const state = row[0];
-                const year = row[1];
-                const month = row[2];
-                const rate = row[3];
-
-                const monthyear = `${month}/${year}`;
-                if (!uniqueMonths.includes(monthyear)) {
-                    uniqueMonths.push(monthyear);
-                }
-
-                if (!datasets[state]) {
-                    datasets[state] = {
+                    if (!datasets[state]) {
+                        datasets[state] = {
                         label: state,
                         data: [],
                         backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
                         borderColor: stateColors[state] || `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
                         borderWidth: 2
-                    };
+                        };
+                    }
+
+
+                    if (datasets[state].data.some(item => item.x === monthyear)){
+                        //do nothing
+                    }
+                    else{
+                        datasets[state].data.push({
+                            x: `${month}/${year}`,
+                            y: rate
+                        });
+                    }
+
+                    if (!conditionDatasets[condition]) {
+                        conditionDatasets[condition] = {};
+                    }
+
+                    if (!conditionDatasets[condition][state]) {
+                        conditionDatasets[condition][state] = {
+                            label: state,
+                            data: [],
+                            backgroundColor: `rgba(0, 0, 0, 0)`,
+                            borderColor: stateColors[state] || `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                            borderWidth: 2
+                        };
+                    }
+
+                    conditionDatasets[condition][state].data.push({
+                        x: monthyear,
+                        y: deaths
+                    });
+
+                });
+                
+                const datasetsArray = Object.values(datasets);
+                const conditionDatasetArray = Object.values(conditionDatasets[selectedCondition]);
+
+
+                console.log(datasetsArray);
+
+                if (empChart) {
+                    // Update chart data and options
+                    empChart.data.labels = uniqueMonths;
+                    empChart.data.datasets = datasetsArray;
+                    empChart.update();
+                } else {
+                    // Create a new chart
+                    empChart = new Chart(myChart, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueMonths,
+                            datasets: datasetsArray
+                        },
+                        options: {
+                            height: 700,
+                            width: 500,
+                            elements:{point:{radius: 1}}},  //remove data point circles
+                            scales: {
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Time' // Specify your x axis label here
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Unemployment Rate' // Specify your y axis label here
+                                }
+                            }]
+                        }
+                    });
                 }
 
-                datasets[state].data.push({
-                    x: `${month}/${year}`,
-                    y: rate
-                });
-            });
+                if (deathChart) {
+                    // Update chart data and options
+                    deathChart.data.labels = uniqueMonths;
+                    deathChart.data.datasets = conditionDatasetArray;
+                    deathChart.update();
+                } else {
+                    // Create a new chart
+                    deathChart = new Chart(myChart2, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueMonths,
+                            datasets: conditionDatasetArray
+                        },
+                        options: {
+                            height: 700,
+                            width: 500,
+                            elements:{point:{radius: 1}}},  //remove data point circles
+                            scales: {
+                                xAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time' // Specify your x axis label here
+                                    }
+                                }],
+                                yAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Deaths' // Specify your y axis label here
+                                    }
+                                }]
+                            }
+                    });
+                }
 
-            const datasetsArray = Object.values(datasets);
+            } catch (error) {
+                console.error('Error filling chart:', error);
+            }               
+        }
+        
 
-            if (lineChart) {
-                // Update chart data and options
-                lineChart.data.labels = uniqueMonths;
-                lineChart.data.datasets = datasetsArray;
-                lineChart.update();
-            } else {
-                // Create a new chart
-                lineChart = new Chart(myChart, {
-                    type: 'line',
-                    data: {
-                        labels: uniqueMonths,
-                        datasets: datasetsArray
-                    },
-                    options: {
-                        height: 700,
-                        width: 500,
-                        elements:{point:{radius: 0}}}  //remove data point circles
-                });
+        // Function to fetch data from the server and display it in the table
+        async function fetchData() {
+            try {
+                sharedString = JSON.stringify(sharedStates);
+                const url = `/unemployment?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}`;
+
+                const response = await fetch(url);
+                data = await response.json();
+
+                console.log(data);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
-
-        } catch (error) {
-            console.error('Error filling chart:', error);
         }
-    }
 
-    // Function to fetch data from the server and display it in the table
-    async function fetchData() {
-        try {
-            sharedString = JSON.stringify(sharedStates);
-            const url = `/data?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}`;
-
-            const response = await fetch(url);
-            data = await response.json();
-
-            console.log(data);
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
+        function writeSharedStates(state){
+            sharedStates.push(state);
+            ensureSelected();
         }
-    }
 
-    function writeSharedStates(state){
-        sharedStates.push(state);
-        fillChart();
-    }
-
-    function removeSharedStates(state){
-        const index = sharedStates.indexOf(state);
-        if (index != -1) {
-            sharedStates.splice(index, 1);
+        function removeSharedStates(state){
+            const index = sharedStates.indexOf(state);
+            //console.log("index:"+index);
+            if (index != -1) {
+                sharedStates.splice(index, 1);
+            }
+            
+            if (sharedStates.length >=1){
+                ensureSelected();
+            }
+            else{ 
+                //console.log("chart should be empty");
+                placeholder.style.display = 'none';
+                placeholder2.style.display = 'none';
+            }
         }
-        if (sharedStates.length >=1){
-            fillChart();
+
+        
+
+        // Function to generate distinct colors
+        function generateColors(numColors) {
+            const colors= [];
+            const hueStep =360/numColors;
+            for (let i = 0; i <numColors; i++) {
+                const hue = (hueStep *i) %360;
+                const saturation= 10+Math.random() *90; // Vary between 10% - 100%
+                const lightness= 20 +Math.random()* 60; // Vary lightness from 20% - 80%
+                colors.push(`hsl(${hue},${saturation}%,${lightness}%)`);
+            }
+            return colors;
         }
-        else{
-            placeholder.style.display = 'none';
+
+        // List of state names
+        const stateNames = [
+            'Alabama', 'Alaska', 'Arizona','Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+            'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+            'Massachusetts','Michigan', 'Minnesota','Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+            'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+            'Rhode Island', 'South Carolina','South Dakota','Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+            'West Virginia','Wisconsin','Wyoming'
+        ];
+
+        // Generate distinct colors
+        const colors = generateColors(stateNames.length);
+
+        // Generate state colors object
+        const stateColors = {};
+        for (let i = 0; i <stateNames.length; i++) {
+            stateColors[stateNames[i]]=colors[i];
         }
-    }
 
-    // Function to generate distinct colors
-    function generateColors(numColors) {
-        const colors= [];
-        const hueStep =360/numColors;
-        for (let i = 0; i <numColors; i++) {
-            const hue = (hueStep *i) %360;
-            const saturation= 10+Math.random() *90; // Vary between 10% - 100%
-            const lightness= 20 +Math.random()* 60; // Vary lightness from 20% - 80%
-            colors.push(`hsl(${hue},${saturation}%,${lightness}%)`);
-        }
-        return colors;
-    }
-
-    // List of state names
-    const stateNames = [
-        'Alabama', 'Alaska', 'Arizona','Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
-        'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
-        'Massachusetts','Michigan', 'Minnesota','Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
-        'Rhode Island', 'South Carolina','South Dakota','Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-        'West Virginia','Wisconsin','Wyoming'
-    ];
-
-    // Generate distinct colors
-    const colors = generateColors(stateNames.length);
-
-    // Generate state colors object
-    const stateColors = {};
-    for (let i = 0; i <stateNames.length; i++) {
-        stateColors[stateNames[i]]=colors[i];
-    }
-
-    console.log(stateColors);
-
-</script>
+    </script>
 </body>
+
 </html>

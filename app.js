@@ -55,7 +55,7 @@ app.get('/dataDJ', async (req, res) => {
 
         var states = JSON.parse(statesString);
 
-        //Build the where statement dynamically based on user's input parameters
+        //Build the where statement dynamically based on user's input states, aka :state1, :state2...
         let whereClause = '';
         if (states.length > 0) {
             whereClause = `AND cd.StateName IN (${states.map((_, index) => `:state${index + 1}`).join(', ')})`;
@@ -122,10 +122,10 @@ app.get('/dataDJ', async (req, res) => {
             endDate
         };
 
-        //Add user-specified input to bind variables
+        //Add user-specified input to bind variables for the where clause
         states.forEach((state, index) => {
             bindVars[`state${index + 1}`] = state;
-        });
+        })
 
         //Execute the query
         const result = await con.execute(query, bindVars);

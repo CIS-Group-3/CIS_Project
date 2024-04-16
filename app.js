@@ -31,42 +31,53 @@ async function connectToDatabase() {
     }
 }
 
-app.get('/data', async (req, res) => {
+app.get('/covid', async (req, res) => {
+    console.log('Covid data request received:', req.query);
     var startMonth = req.query.sm;
     var startYear = req.query.sy;
     var endMonth = req.query.em;
     var endYear = req.query.ey;
     var statesString = req.query.states;
     var ageRange = req.query.ageRange || null;
-
-    var states = JSON.parse(statesString);
-
-    let whereClause = "";
-
-    if (states.length > 0) {
-        whereClause = `(StateName IN ('${states.join("', '")}')`;
+    var states;
+    try {
+        states = JSON.parse(statesString);
+    } catch (e) {
+        console.error('Error parsing JSON:', e);
+        return res.status(400).json({ error: "Invalid states parameter" });
     }
 
-    if (startYear < endYear) {
-        whereClause += ` AND (YEARCOVID > ${startYear} AND YEARCOVID < ${endYear})`;
-    } else if (startYear === endYear) {
-        whereClause += ` AND (YEARCOVID = ${startYear} AND MONTHCOVID >= ${startMonth} AND MONTHCOVID <= ${endMonth})`;
+    // Here we ensure the type of parameters are what we expect
+    if (isNaN(startYear) || isNaN(startMonth) || isNaN(endYear) || isNaN(endMonth)) {
+        return res.status(400).json({ error: "Invalid date parameters" });
     }
 
-    whereClause += `)`;
+    if (!Array.isArray(states)) {
+        return res.status(400).json({ error: "States parameter must be an array" });
+    }
+
+    if (ageRange && typeof ageRange !== 'string') {
+        return res.status(400).json({ error: "Invalid age range parameter" });
+    }
 
     try {
-        const con = await connectToDatabase();
+        const statePlaceholders = states.map((_, index) => `:state${index}`).join(', ');
+
         const query = ageRange ?
             `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
-             FROM "B.NAKASONE"."COVIDDEATHREPORT"
-             WHERE ${whereClause} AND AgeRange = :ageRange
-             GROUP BY StateName, AgeRange
-             ORDER BY StateName, AgeRange` :
+            FROM "B.NAKASONE"."COVIDDEATHREPORT"
+            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
+                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
+                AND StateName IN (${statePlaceholders}) 
+                AND AgeRange = :ageRange
+            GROUP BY StateName, AgeRange 
+            ORDER BY StateName, AgeRange` :
             `SELECT StateName, SUM(COVID19Deaths) AS TotalDeaths
-             FROM "B.NAKASONE"."COVIDDEATHREPORT"
-             WHERE ${whereClause}
-             GROUP BY StateName`;
+            FROM "B.NAKASONE"."COVIDDEATHREPORT"
+            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
+                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
+                AND StateName IN (${statePlaceholders})
+            GROUP BY StateName`;
     
         const bindVars = {
             startYear: startYear,
@@ -80,11 +91,17 @@ app.get('/data', async (req, res) => {
             bindVars[`state${index}`] = state;
         });
     
+        const con = await connectToDatabase();
         const result = await con.execute(query, bindVars);
+
+        if (!result || !result.rows) {
+            throw new Error("No data found");
+        }
+
         await con.close();
-        res.json(result);
+        res.json(result.rows);
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching data app.js:', error);
         res.status(500).json({ error: error.message });
     }
 });

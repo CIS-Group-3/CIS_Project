@@ -33,35 +33,34 @@ async function connectToDatabase() {
 
 app.get('/covid', async (req, res) => {
     console.log('Covid data request received:', req.query);
-    var startMonth = req.query.sm;
-    var startYear = req.query.sy;
-    var endMonth = req.query.em;
-    var endYear = req.query.ey;
-    var statesString = req.query.states;
-    var ageRange = req.query.ageRange || null;
-    var states;
-    try {
-        states = JSON.parse(statesString);
-    } catch (e) {
-        console.error('Error parsing JSON:', e);
-        return res.status(400).json({ error: "Invalid states parameter" });
-    }
-
-    // Here we ensure the type of parameters are what we expect
-    if (isNaN(startYear) || isNaN(startMonth) || isNaN(endYear) || isNaN(endMonth)) {
-        return res.status(400).json({ error: "Invalid date parameters" });
-    }
-
-    if (!Array.isArray(states)) {
-        return res.status(400).json({ error: "States parameter must be an array" });
-    }
-
-    if (ageRange && typeof ageRange !== 'string') {
-        return res.status(400).json({ error: "Invalid age range parameter" });
-    }
 
     try {
+        const con = await connectToDatabase();
+        var startMonth = req.query.sm;
+        var startYear = req.query.sy;
+        var endMonth = req.query.em;
+        var endYear = req.query.ey;
+        var statesString = req.query.states;
+        var ageRange = req.query.ageRange || null;
+
+        var states = JSON.parse(statesString);
+
+        console.log("states are: "+states);
+
         const statePlaceholders = states.map((_, index) => `:state${index}`).join(', ');
+    
+        // Here we ensure the type of parameters are what we expect
+        if (isNaN(startYear) || isNaN(startMonth) || isNaN(endYear) || isNaN(endMonth)) {
+            return res.status(400).json({ error: "Invalid date parameters" });
+        }
+    
+        if (!Array.isArray(states)) {
+            return res.status(400).json({ error: "States parameter must be an array" });
+        }
+    
+        if (ageRange && typeof ageRange !== 'string') {
+            return res.status(400).json({ error: "Invalid age range parameter" });
+        }
 
         const query = ageRange ?
             `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
@@ -84,14 +83,13 @@ app.get('/covid', async (req, res) => {
             startMonth: startMonth,
             endYear: endYear,
             endMonth: endMonth,
-            ...(ageRange && { ageRange })
+            ...(ageRange && { ageRange : ageRange })
         };
             
         states.forEach((state, index) => {
             bindVars[`state${index}`] = state;
         });
     
-        const con = await connectToDatabase();
         const result = await con.execute(query, bindVars);
 
         if (!result || !result.rows) {
@@ -99,7 +97,8 @@ app.get('/covid', async (req, res) => {
         }
 
         await con.close();
-        res.json(result.rows);
+
+        res.json(result);
     } catch (error) {
         console.error('Error fetching data app.js:', error);
         res.status(500).json({ error: error.message });
@@ -163,5 +162,3 @@ app.post('/login', async (req, res) => {
 server.listen(3000, function(){
     console.log("server is listening on port: 3000");
 });
-
-//https://medium.com/swlh/basic-login-system-with-node-js-99acf02275b9

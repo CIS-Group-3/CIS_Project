@@ -12,7 +12,7 @@ async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth
         });
 
         const statePlaceholders = userStates.map((_, index) => `:state${index}`).join(', ');
-
+        
         const query = userAgeRange ?
             `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
@@ -36,13 +36,14 @@ async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth
             endMonth: userEndMonth,
             ...(userAgeRange && { ageRange: userAgeRange }) // Includes ageRange in bindVars only if it's provided
         };
-        
+
         userStates.forEach((state, index) => {
             bindVars[`state${index}`] = state;
         });
         
         const data = await con.execute(query, bindVars);
-        return data.rows;
+        console.log(data);
+        // console.log(data.rows);
 
     } catch (err) {
         console.error(err);
@@ -50,18 +51,18 @@ async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth
     }
 }
 
-    const userStartYear = parseInt(process.argv[2], 10); // The third command line argument
-    const userStartMonth = parseInt(process.argv[3], 10); // The fourth command line argument
-    const userEndYear = parseInt(process.argv[4], 10); // The fifth command line argument
-    const userEndMonth = parseInt(process.argv[5], 10); // The sixth command line argument
-    const userStatesInput = process.argv[6]; // The seventh command line argument
-    const userStates = userStatesInput.split(',');
-    const userAgeRange = process.argv[7]; // The eigth command line argument (optional depending on input)
+const userStartYear = parseInt(process.argv[2], 10); // The third command line argument
+const userStartMonth = parseInt(process.argv[3], 10); // The fourth command line argument
+const userEndYear = parseInt(process.argv[4], 10); // The fifth command line argument
+const userEndMonth = parseInt(process.argv[5], 10); // The sixth command line argument
+const userStatesInput = process.argv[6]; // The seventh command line argument
+const userStates = userStatesInput.split(',');
+const userAgeRange = process.argv[7]; // The eigth command line argument (optional depending on input)
 
-    if (!isNaN(userStartYear) && !isNaN(userStartMonth) && !isNaN(userEndYear) && !isNaN(userEndMonth) && userStates.length > 0) {
-        QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth, userStates, userAgeRange);
-    } else {
-        console.error('Please provide valid integers for year and month, and at least one state.');
-    }
+if (!isNaN(userStartYear) && !isNaN(userStartMonth) && !isNaN(userEndYear) && !isNaN(userEndMonth) && userStates.length > 0) {
+    QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth, userStates, userAgeRange);
+} else {
+    console.error('Please provide valid integers for year and month, and at least one state.');
+}
 
 //Tutorial - https://www.youtube.com/watch?v=e_J8Q8YatB8

@@ -332,27 +332,42 @@
             }
         }
 
-        // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                sharedString = encodeURIComponent(JSON.stringify(sharedStates));  // Encode the sharedStates for URL
-                selectedAgeRange = selectedAgeRange ? encodeURIComponent(selectedAgeRange) : 'null';  // Encode the age range or use 'null' string
-                const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${selectedAgeRange}`;
-
-                const response = await fetch(url);
+                const response = await fetch('/data.json');
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const text = await response.text();
-                data = JSON.parse(text);
-                
-            } catch(error) {
+                const data = await response.json();
+                console.log(data);
+            } catch (error) {
                 console.error('Error fetching data covid.html:', error);
-                // It's good practice to also display an error message in the UI
                 alert("Failed to fetch data: " + error.message);
             }
         }
+        
+        // Function to fetch data from the server and display it in the table
+        // async function fetchData() {
+        //     try {
+        //         sharedString = encodeURIComponent(JSON.stringify(sharedStates));  // Encode the sharedStates for URL
+        //         selectedAgeRange = selectedAgeRange ? encodeURIComponent(selectedAgeRange) : 'null';  // Encode the age range or use 'null' string
+        //         const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${selectedAgeRange}`;
+
+        //         const response = await fetch(url);
+        //         if (!response.ok) {
+        //             throw new Error(`HTTP error! status: ${response.status}`);
+        //         }
+
+        //         const text = await response.text();
+        //         data = JSON.parse(text);
+
+        //     } catch(error) {
+        //         console.error('Error fetching data covid.html:', error);
+        //         // It's good practice to also display an error message in the UI
+        //         alert("Failed to fetch data: " + error.message);
+        //     }
+        // }
 
         function writeSharedStates(state){
             sharedStates.push(state);

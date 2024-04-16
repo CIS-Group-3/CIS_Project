@@ -292,6 +292,27 @@ app.get('/crimerate', async (req, res) => {
     }
 });
 
+app.get('/totTuples', async (req, res) => {
+    try {
+        const con = await connectToDatabase();
+        const result = await con.execute(
+            `SELECT SUM(c1 + c2 + c3 + c4 + c5)
+            FROM
+            (SELECT
+            (SELECT COUNT(*) FROM "S.KARANTH"."LABORFORCE") as c1,
+            (SELECT COUNT(*) FROM "ABIGAIL.LIN"."CRIMEREPORT") as c2,
+            (SELECT COUNT(*) FROM  "ABIGAIL.LIN"."DJINDEX") as c3,
+            (SELECT COUNT(*) FROM "B.NAKASONE"."COVIDDEATHREPORT") as c4,
+            (SELECT COUNT(*) FROM "NCHINTALAPATI"."USINFLATIONRATES") as c5
+            FROM dual)`
+        );
+        await con.close();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post('/register', async (req, res) => {
     try{
         let foundUser = users.find((data) => req.body.email === data.email);

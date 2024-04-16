@@ -50,3 +50,16 @@
 #mylink{
     font-size: 25px;
 }
+
+.button {
+    margin-top: 30px;
+}
+
+.btn-custom {
+    background-color: #ABCDEF;
+    color: white;
+}
+
+.btn-custom:hover {
+    background-color: #85C1E9;
+}

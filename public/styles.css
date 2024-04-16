@@ -1,6 +1,4 @@
-a{
-    font-size: 20px;    
-}
+
 #title{
     width: 200%;
 }
@@ -12,21 +10,21 @@ a{
 }
 #tabs-holder{
     width:100%;
-    background-color: white;
 }
 #covid {
-    margin: 0;
+    margin-left: -20px;
     padding: 0;
     background-image: url('covid.jpg'); 
     background-size: cover; 
     background-position: center;
     background-repeat: no-repeat; 
     height: 100vh; 
-    
+    width:103%
 }
 
 #holder{
     background-color: lightslategrey;
+    color: white;
     font-size: 24px;
     height:130px;
     width:400px;
@@ -36,6 +34,7 @@ a{
 }
 #holder1{
     background-color: lightslategray;
+    color: white;
     font-size: 24px;
     height:330px;
     width:1000px;

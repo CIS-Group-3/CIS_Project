@@ -127,7 +127,6 @@
         var covidChart = placeholder.getContext('2d');
         var lineChart;
 
-        const dropdown = document.getElementById('dropdown');
         var selectedAgeRange = null;
 
         $(document).ready(function(){
@@ -380,17 +379,17 @@
         // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                sharedString = encodeURIComponent(JSON.stringify(sharedStates));  // Encode the sharedStates for URL
-                selectedAgeRange = ageRange ? encodeURIComponent(ageRange) : 'null';  // Encode the age range or use 'null' string
-                const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${selectedAgeRange}`;
+                sharedString = JSON.stringify(sharedStates);  // Encode the sharedStates for URL
+                const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${ageRange}`;
 
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const text = await response.text();
-                data = JSON.parse(text);
+                data = await response.json();
+
+                console.log(data);
 
             } catch(error) {
                 console.error('Error fetching data covid.html:', error);

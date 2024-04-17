@@ -42,6 +42,21 @@ app.get('/covid', async (req, res) => {
         var endYear = req.query.ey;
         var statesString = req.query.states;
         var ageRange = req.query.ageRange || null;
+        var stringStartMonth;
+        var stringEndMonth;
+
+        //Format the startMonth and endMonth to work with SQL query
+        if (startMonth.length === 1) {
+            stringStartMonth = '0' + startMonth;
+        }
+
+        if (endMonth.length === 1) {
+            stringEndMonth = '0' + endMonth;
+        }
+
+        //Format the startDate and endDate to work with SQL query
+        const startDate = `${startYear}-${stringStartMonth}-01`;
+        const endDate = `${endYear}-${stringEndMonth}-01`;
 
         var states = JSON.parse(statesString);
 
@@ -62,27 +77,35 @@ app.get('/covid', async (req, res) => {
             return res.status(400).json({ error: "Invalid age range parameter" });
         }
 
-        const query = ageRange ?
+        const query =
             `SELECT YEARCOVID, MONTHCOVID, StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
-            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
-                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
+            WHERE
+                TO_DATE(YEARCOVID || '-' || LPAD(MONTHCOVID, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
                 AND StateName IN (${statePlaceholders}) 
                 AND AgeRange = :ageRange
             GROUP BY YEARCOVID, MONTHCOVID, StateName, AgeRange 
-            ORDER BY StateName, AgeRange` :
-            `SELECT YEARCOVID, MONTHCOVID, StateName, SUM(COVID19Deaths) AS TotalDeaths
-            FROM "B.NAKASONE"."COVIDDEATHREPORT"
-            WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
-                AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
-                AND StateName IN (${statePlaceholders})
-            GROUP BY YEARCOVID, MONTHCOVID, StateName`;
+            ORDER BY StateName, AgeRange`;
+        
+        // const query = ageRange ?
+        //     `SELECT YEARCOVID, MONTHCOVID, StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
+        //     FROM "B.NAKASONE"."COVIDDEATHREPORT"
+        //     WHERE
+        //         TO_DATE(YEARCOVID || '-' || LPAD(MONTHCOVID, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
+        //         AND StateName IN (${statePlaceholders}) 
+        //         AND AgeRange = :ageRange
+        //     GROUP BY YEARCOVID, MONTHCOVID, StateName, AgeRange 
+        //     ORDER BY StateName, AgeRange` :
+        //     `SELECT YEARCOVID, MONTHCOVID, StateName, SUM(COVID19Deaths) AS TotalDeaths
+        //     FROM "B.NAKASONE"."COVIDDEATHREPORT"
+        //     WHERE
+        //         TO_DATE(YEARCOVID || '-' || LPAD(MONTHCOVID, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD') 
+        //         AND StateName IN (${statePlaceholders})
+        //     GROUP BY YEARCOVID, MONTHCOVID, StateName`;
     
         const bindVars = {
-            startYear: startYear,
-            startMonth: startMonth,
-            endYear: endYear,
-            endMonth: endMonth,
+            startDate,
+            endDate,
             ...(ageRange && { ageRange : ageRange })
         };
             

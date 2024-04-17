@@ -379,7 +379,7 @@
         // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                sharedString = JSON.stringify(sharedStates);  // Encode the sharedStates for URL
+                sharedString = JSON.stringify(sharedStates);
                 const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${ageRange}`;
 
                 const response = await fetch(url);

@@ -270,6 +270,7 @@ app.get('/crimerate', async (req, res) => {
         var startYear = req.query.sy;
         var endMonth = req.query.em;
         var endYear = req.query.ey;
+        var selectedArea = req.query.selectedArea;
 
         whereClause = ``; 
 
@@ -282,15 +283,24 @@ app.get('/crimerate', async (req, res) => {
             whereClause = ` ((LYear = ${startYear} AND LMonth >= ${startMonth} AND LMonth <= ${endMonth}))`;
         }
 
+        whereClause1 = `AND area = '${selectedArea}'`;
+        if (selectedArea == "All Areas")
+        {
+            whereClause1 = '';
+        }
+
         console.log("where: " +whereClause);
 
         const con = await connectToDatabase();
         const result = await con.execute(
             `SELECT lmonth, lyear, "USAvgUnemployment", "CRCount" 
-            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)/100000, 2) as "USAvgUnemployment" 
+            FROM (SELECT lmonth, lyear, ROUND(AVG(totalunemployment)) as "USAvgUnemployment" 
             FROM "S.KARANTH"."LABORFORCE" WHERE lyear >= 2020 GROUP BY lmonth, lyear ORDER BY lyear, lmonth ASC) lf, 
             (SELECT monthocc, yearocc, COUNT(*) as "CRCount" FROM 
-            "ABIGAIL.LIN"."CRIMEREPORT" WHERE yearocc <= 2022 GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
+            "ABIGAIL.LIN"."CRIMEREPORT", "B.NAKASONE"."AREAS" 
+            WHERE yearocc <= 2022 AND "ABIGAIL.LIN"."CRIMEREPORT".DRNO = "B.NAKASONE"."AREAS".DRNO ${whereClause1} AND 
+            (CRMCDDESC = 'ROBBERY' OR CRMCDDESC = 'GRAND THEFT / INSURANCE FRAUD' OR CRMCDDESC = 'THEFT FROM MOTOR VEHICLE - GRAND ($950.01' OR CRMCDDESC = 'SHOPLIFTING - PETTY THEFT ($950 & UNDER)' OR CRMCDDESC = 'THEFT PLAIN - PETTY ($950 & UNDER)')
+            GROUP BY monthocc, yearocc ORDER BY yearocc, monthocc ASC)cr 
             WHERE lmonth = monthocc AND lyear = yearocc AND (${whereClause})
             ORDER BY lyear, lmonth`
         );

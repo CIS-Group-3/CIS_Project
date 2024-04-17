@@ -2,7 +2,7 @@
 <html lang = "en">
 <head>
 	<meta charset = "UTF-8">
-  	<title> Unemployment </title>
+  	<title> Crime Rate </title>
     <link rel="stylesheet" href="crimerate.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--for chart-->
@@ -46,9 +46,9 @@
         </div>
         <div id="option-holder">
             <br>
-            <div id="instructions">This chart shows the correlation between unemployment and theft/stealing related crimes in California over the period of time COVID was most prominent. </div>
+            <div id="instructions">This chart shows the correlation between unemployment in California and theft/stealing related crimes in different areas of Los Angeles over the period of time COVID was most prominent. </div>
             <br>
-            <div id="time-range">Select a time range from 2020 - 2022 to view the chart.</div>
+            <div id="time-range">Select a time range between 2020 - 2022 and an area in Los Angeles to view the chart.</div>
             <br>
             <div id="dateArea">                
                 <div id="startDate">
@@ -59,6 +59,35 @@
                     Select end date:
                       <input type="text" class="form-control" id="endDatePicker" readonly>
                 </div>
+            </div>
+            <div id="conditionArea">
+                <div style="float:left">Select Area:</div>
+                <select id="dropdown">
+                    <option value="null" style="color: gray;">Select</option>
+                    <option value="All Areas">All Areas</option>
+                    <option value="Devonshire">Devonshire</option>
+                    <option value="Northeast">Northeast</option>
+                    <option value="Harbor">Harbor</option>
+                    <option value="Olympic">Olympic</option>
+                    <option value="Hollywood">Hollywood</option>
+                    <option value="Pacific">Pacific</option>
+                    <option value="Van Nuys">Van Nuys</option>
+                    <option value="77th Street">77th Street</option>
+                    <option value="Foothill">Foothill</option>
+                    <option value="Central">Central</option>
+                    <option value="West LA">West LA</option>
+                    <option value="Hollenbeck">Hollenbeck</option>
+                    <option value="Mission">Mission</option>
+                    <option value="Rampart">Rampart</option>
+                    <option value="Southwest">Southwest</option>
+                    <option value="West Valley">West Valley</option>
+                    <option value="Wilshire">Wilshire</option>
+                    <option value="N Hollywood">N Hollywood</option>
+                    <option value="Southeast">Southeast</option>
+                    <option value="Topanga">Topanga</option>
+                    <option value="Newton">Newton</option>
+                </select>
+                  
             </div>
         </div>
         <div id="chart-holder">
@@ -93,6 +122,34 @@
         var lineChart;
         var lineChart1; 
 
+        const dropdown = document.getElementById('dropdown');
+        var selectedArea ='null';
+
+        dropdown.addEventListener('change', function() {
+            ensureSelected();
+        });
+    
+        function ensureSelected(){
+            console.log("ensure called");
+            selectedArea = dropdown.value;
+            console.log("selected: "+selectedArea);
+
+            if ($('#startDatePicker').datepicker('getDate') != null && $('#endDatePicker').datepicker('getDate') != null){
+
+                var startDate = $('#startDatePicker').datepicker('getDate');
+                var endDate = $('#endDatePicker').datepicker('getDate');
+                if (startDate >= endDate) {
+                    alert("Start date must be before end date.");
+                    // Reset the start date to the previous value
+                    $(this).val('');
+                } else {
+                    if (selectedArea != 'null'){ //state(s) and condition selected
+                        fillChart();
+                    }
+                }
+                }
+        }
+
         $(document).ready(function(){
             var minDate = new Date(2019, 12, 31);
             var maxDate = new Date(2022, 11, 31);
@@ -104,19 +161,7 @@
                 endDate: maxDate,
                 autoclose: true,
                 }).on('changeDate', function(e){
-                        if ($('#endDatePicker').datepicker('getDate') != null){
-                            var startDate = $('#startDatePicker').datepicker('getDate');
-                            var endDate = $('#endDatePicker').datepicker('getDate');
-                            if (startDate >= endDate) {
-                                alert("Start date must be before end date.");
-                                // Reset the start date to the previous value
-                                $(this).val('');
-                            } else {
-                                //if (sharedStates.length >=1){ //state(s) selected
-                                    fillChart();
-                                //}
-                            }
-                        }
+                        ensureSelected();
                     });
                 
             $('#endDatePicker').datepicker({
@@ -127,20 +172,7 @@
                 endDate: maxDate,
                 autoclose: true
                 }).on('changeDate', function(e){
-                        if ($('#startDatePicker').datepicker('getDate') != null){
-
-                            var startDate = $('#startDatePicker').datepicker('getDate');
-                            var endDate = $('#endDatePicker').datepicker('getDate');
-                            if (startDate >= endDate) {
-                                alert("Start date must be before end date.");
-                                // Reset the start date to the previous value
-                                $(this).val('');
-                            } else {
-                                //if (sharedStates.length >=1){ //state(s) selected
-                                    fillChart();
-                                //}
-                            }
-                        }
+                        ensureSelected();
                     });
         });
         
@@ -149,7 +181,6 @@
             try{
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
-                //console.log("date: "+startDate.getMonth());
                 
                 startMonth = startDate.getMonth() +1;
                 startYear = startDate.getFullYear();
@@ -157,7 +188,6 @@
                 endYear = endDate.getFullYear();
                 
                 await fetchData();
-                //console.log(data.rows);
                 
                 placeholder.style.display = 'block'; //make chart visible if needed.
                 placeholder1.style.display = 'block';
@@ -222,7 +252,23 @@
                             labels: uniqueMonths,
                             datasets: datasetsArray
                         },
-                        options: {elements:{point:{radius: 0}}}  //remove data point circles
+                        options: {
+                            elements:{point:{radius: 1}},
+                            scales: {
+                                xAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time' 
+                                    }
+                                }],
+                                yAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Unemployment'
+                                    }
+                                }]
+                            }
+                        }  //remove data point circles
                     });
                 }
 
@@ -239,7 +285,24 @@
                             labels: uniqueMonths,
                             datasets: datasetsArray1
                         },
-                        options: {elements:{point:{radius: 0}}}  //remove data point circles
+                        options: {
+                            elements:{point:{radius: 1}},
+                            scales: {
+                                xAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time' 
+                                    }
+                                }],
+                                yAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Crime Rate'
+                                    }
+                                }]
+                            }
+                        
+                        }  //remove data point circles
                     });
                 }
 
@@ -252,7 +315,7 @@
         async function fetchData() {
             try {
                 //sharedString = JSON.stringify(sharedStates);
-                const url = `/crimerate?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}`;
+                const url = `/crimerate?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&selectedArea=${selectedArea}`;
 
                 const response = await fetch(url);
                 data = await response.json();

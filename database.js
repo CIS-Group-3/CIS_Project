@@ -29,8 +29,6 @@ async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth
                 AND StateName IN (${statePlaceholders})
             GROUP BY YEARCOVID, MONTHCOVID, StateName`;
 
-        
-
         const bindVars = {
             startYear: userStartYear,
             startMonth: userStartMonth,

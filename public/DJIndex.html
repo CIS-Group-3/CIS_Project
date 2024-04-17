@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="en">
 <head>
-	<meta charset = "UTF-8">
-  	<title> Stock Market </title>
+    <meta charset="UTF-8">
+    <title>Stock Market</title>
     <link rel="stylesheet" href="DJIndex.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--for chart-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-     <!--for map-->
-     <script src="mapdata.js"></script>
-     <script src="usmap.js"></script>
-     <script src="select.js"></script>
+    <!--for map-->
+    <script src="mapdata.js"></script>
+    <script src="usmap.js"></script>
+    <script src="select.js"></script>
     <!--for datepicker-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-  <!--for tabs-->
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <!--for tabs-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <div id="container">
@@ -25,13 +25,13 @@
             <div class="col">
                 <ul class="nav nav-tabs nav-fill">
                     <li class="nav-item">
-                    <a class="nav-link" href="./index.html" data-toggle="tab">Welcome</a>
+                        <a class="nav-link" href="./index.html" data-toggle="tab">Welcome</a>
                     </li>
                     <li class="nav-item">
-                    <a class="nav-link" href="#placeholder" data-toggle="tab">COVID</a>
+                        <a class="nav-link" href="#placeholder" data-toggle="tab">COVID</a>
                     </li>
                     <li class="nav-item">
-                    <a class="nav-link" href="./unemployment.html" data-toggle="tab">Unemployment</a>
+                        <a class="nav-link" href="./unemployment.html" data-toggle="tab">Unemployment</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="./DJIndex.html" data-toggle="tab">Stock Market</a>
@@ -42,11 +42,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="./inflation.html" data-toggle="tab">CPI</a>
                     </li>
-                    
+
                 </ul>
             </div>
         </div>
-    </div> 
+    </div>
     <div id="option-holder">
         <div id="instructions">Select state(s) and time range to view the chart.</div>
         <div id="dateArea">
@@ -86,7 +86,8 @@
         <div id="statesSelected">
             Click on the map below to select and deselect states to see the total deaths over time.
             <br />
-            States selected: </div>
+            States selected:
+        </div>
         <div id="map"></div>
     </div>
 
@@ -106,18 +107,20 @@
 
 
 <script>
+    //Variables for user data
     var data;
     var startMonth;
     var startYear;
     var endMonth;
     var endYear;
 
-    var sharedStates=[];
-    var userIndices=[];
+    var sharedStates = [];
+    var userIndices = [];
 
     var placeholderDeaths = document.getElementById('totalDeathsChart');
     var totalDeathsChart = placeholderDeaths.getContext('2d');
 
+    //Chart placeholders
     var placeholderHigh = document.getElementById('HighChart');
     var HighChart = placeholderHigh.getContext('2d');
 
@@ -138,6 +141,7 @@
 
     $(document).ready(function(){
 
+        //Min/max dates for chart picker, to prevent user confusion
         var minDate = new Date(2019, 12, 31);
         var maxDate = new Date(2023, 8, 30);
 
@@ -237,6 +241,19 @@
 
     }
 
+    //Function to generate diff colors for states
+    function generateColors(numColors) {
+        const colors = [];
+        const hueStep = 360 / numColors;
+        for (let i = 0; i < numColors; i++) {
+            const hue = (hueStep * i) % 360;
+            const saturation = 10 + Math.random() * 90;
+            const lightness = 20 + Math.random() * 60;
+            colors.push(`hsl(${hue},${saturation}%,${lightness}%)`);
+        }
+        return colors;
+    }
+
     //Call the updateIndices function when checkbox is checked/unchecked
     $(document).ready(function() {
         $('input[type=checkbox]').change(function() {
@@ -252,6 +269,37 @@
             }
         });
     });
+
+    //List of state names
+    const stateNames = [
+        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+        'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+        'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+        'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+        'West Virginia', 'Wisconsin', 'Wyoming'
+    ];
+
+    //Generate distinct colors
+    const colors = generateColors(stateNames.length);
+
+    //Generate state colors object
+    const stateColors = {};
+    for (let i = 0; i < stateNames.length; i++) {
+        stateColors[stateNames[i]] = colors[i];
+    }
+
+    //Generate distinct colors for indices
+    const indices = ['High', 'Low', 'Open', 'Close'];
+
+    //Generate distinct colors for indices
+    const indexColors = generateColors(indices.length);
+
+    //Generate index colors object
+    const indexColorMap = {};
+    for (let i = 0; i < indices.length; i++) {
+        indexColorMap[indices[i]] = indexColors[i];
+    }
 
     //Show the chart and fill with my data
     async function fillChart(){
@@ -303,9 +351,8 @@
                     datasets[state] = {
                         label: state,
                         data: [],
-                        //Random color for each dataset, aka state
                         backgroundColor: `rgba(0, 0, 0, 0)`,
-                        borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                        borderColor: stateColors[state] || `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color if no predefined color for the state
                         borderWidth: 2
                     };
                 }
@@ -417,7 +464,7 @@
                 label: 'Total US',
                 data: totalData,
                 backgroundColor: 'rgba(0, 0, 0, 0)',
-                borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                borderColor: indexColorMap[currentIndex] || `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
                 borderWidth: 2
             };
 

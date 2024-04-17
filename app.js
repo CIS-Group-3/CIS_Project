@@ -33,6 +33,8 @@ async function connectToDatabase() {
 
 app.get('/dataDJ', async (req, res) => {
     try {
+
+        //Get the user values
         var startMonth = req.query.sm;
         var startYear = req.query.sy;
         var endMonth = req.query.em;
@@ -42,6 +44,7 @@ app.get('/dataDJ', async (req, res) => {
         var stringStartMonth;
         var stringEndMonth;
 
+        //Format the startMonth and endMonth to work with SQL query
         if (startMonth.length === 1) {
             stringStartMonth = '0' + startMonth;
         }
@@ -50,16 +53,20 @@ app.get('/dataDJ', async (req, res) => {
             stringEndMonth = '0' + endMonth;
         }
 
+        //Format the startDate and endDate to work with SQL query
         const startDate = `${startYear}-${stringStartMonth}-01`;
         const endDate = `${endYear}-${stringEndMonth}-01`;
 
         var states = JSON.parse(statesString);
 
-        //Build the where statement dynamically based on user's input states, aka :state1, :state2...
+        //Empty string for where clause
         let whereClause = '';
+        //Build the where statement dynamically based on user's input states, aka :state1, :state2...
         if (states.length > 0) {
             whereClause = `AND cd.StateName IN (${states.map((_, index) => `:state${index + 1}`).join(', ')})`;
         }
+
+        //Since this query requires all user inputs to run, I have default values in html for user inputs
 
         //Connect to the database
         const con = await connectToDatabase();
@@ -68,6 +75,7 @@ app.get('/dataDJ', async (req, res) => {
         //const indexChoices = ['Low', 'High']; // Include all index choices
         //const statePlaceholders = states.map((_, index) => `:state${index + 1}`).join(', ');
         const query = `
+            --Used two with statements to make sure that deaths and index months align
             WITH AverageIndices AS (
                 SELECT
                     d.dateMonth AS aiMonth,
@@ -91,6 +99,7 @@ app.get('/dataDJ', async (req, res) => {
                      WHERE
                          TO_DATE(cd.YearCOVID || '-' || LPAD(cd.MonthCOVID, 2, '0') || '-' || 01, 'YYYY-MM-DD') BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
                          AND cd.AgeRange = 'All Ages'
+                --Where clause from top if statement
                 ${whereClause}
             GROUP BY
                 cd.MonthCOVID,
@@ -136,6 +145,7 @@ app.get('/dataDJ', async (req, res) => {
         //Send response
         res.json(result);
     } catch (error) {
+        //In case error happens
         res.status(500).json({ error: error.message });
     }
 });

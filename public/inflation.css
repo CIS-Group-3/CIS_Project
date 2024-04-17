@@ -22,10 +22,15 @@ a {
     display: none; /* Remove the map holder */
 }
 
-#chart-holder {
-    float: left; /* Float the chart holder to the left */
-    height: 700px;
-    width: 100%; /* Occupy full width */
+#chart-holder{
+    margin-top: 200px;
+    width:700px;
+
+}
+#chart1-holder{
+
+    width:700px;
+
 }
 
 #startDate {

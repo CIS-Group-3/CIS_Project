@@ -63,20 +63,20 @@ app.get('/covid', async (req, res) => {
         }
 
         const query = ageRange ?
-            `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
+            `SELECT YEARCOVID, MONTHCOVID, StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
             WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
                 AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
                 AND StateName IN (${statePlaceholders}) 
                 AND AgeRange = :ageRange
-            GROUP BY StateName, AgeRange 
+            GROUP BY YEARCOVID, MONTHCOVID, StateName, AgeRange 
             ORDER BY StateName, AgeRange` :
-            `SELECT StateName, SUM(COVID19Deaths) AS TotalDeaths
+            `SELECT YEARCOVID, MONTHCOVID, StateName, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
             WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
                 AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
                 AND StateName IN (${statePlaceholders})
-            GROUP BY StateName`;
+            GROUP BY YEARCOVID, MONTHCOVID, StateName`;
     
         const bindVars = {
             startYear: startYear,
@@ -92,13 +92,15 @@ app.get('/covid', async (req, res) => {
     
         const result = await con.execute(query, bindVars);
 
-        if (!result || !result.rows) {
-            throw new Error("No data found");
+        if (!result || !result.rows || result.rows.length === 0) {
+            console.log("No data found for parameters:", bindVars); // Log the parameters if no rows are found
+            res.status(404).json({ error: "No data found" });
+            return;
         }
 
         await con.close();
 
-        res.json(result);
+        res.json({ rows: result.rows });
     } catch (error) {
         console.error('Error fetching data app.js:', error);
         res.status(500).json({ error: error.message });

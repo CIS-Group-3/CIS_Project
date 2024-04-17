@@ -14,20 +14,20 @@ async function QueryOne(userStartYear, userStartMonth, userEndYear, userEndMonth
         const statePlaceholders = userStates.map((_, index) => `:state${index}`).join(', ');
         
         const query = userAgeRange ?
-            `SELECT StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
+            `SELECT YEARCOVID, MONTHCOVID, StateName, AgeRange, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
             WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
                 AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
                 AND StateName IN (${statePlaceholders}) 
                 AND AgeRange = :ageRange
-            GROUP BY StateName, AgeRange 
+            GROUP BY YEARCOVID, MONTHCOVID, StateName, AgeRange 
             ORDER BY StateName, AgeRange` :
-            `SELECT StateName, SUM(COVID19Deaths) AS TotalDeaths
+            `SELECT YEARCOVID, MONTHCOVID, StateName, SUM(COVID19Deaths) AS TotalDeaths
             FROM "B.NAKASONE"."COVIDDEATHREPORT"
             WHERE (YEARCOVID BETWEEN :startYear AND :endYear)
                 AND (MONTHCOVID BETWEEN :startMonth AND :endMonth) 
                 AND StateName IN (${statePlaceholders})
-            GROUP BY StateName`;
+            GROUP BY YEARCOVID, MONTHCOVID, StateName`;
 
         const bindVars = {
             startYear: userStartYear,

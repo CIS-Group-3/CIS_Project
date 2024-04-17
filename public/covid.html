@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <!--for datepicker-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
   	
 </head>
 <body>
@@ -67,7 +67,19 @@
 
                 </div>
                 <div id="ageArea">
-                    <label for="dropdown" style="float:left">Select Age Range:</label>
+                    Select Age Range:
+                    <select id="ageRangePicker" class="form-control">
+                        <option value="">Select</option>
+                        <option value="0-24">0-24</option>
+                        <option value="25-34">25-34</option>
+                        <option value="35-44">35-44</option>
+                        <option value="45-54">45-54</option>
+                        <option value="55-64">55-64</option>
+                        <option value="65-74">65-74</option>
+                        <option value="75-84">75-84</option>
+                        <option value="85+">85+</option>
+                    </select>
+                    <!-- <label for="dropdown" style="float:left">Select Age Range:</label>
                     <select id="dropdown" aria-label="Select Age Range">
                         <option value="null" style="color: gray;">Select</option>
                         <option value="0-24">0-24</option>
@@ -78,7 +90,7 @@
                         <option value="65-74">65-74</option>
                         <option value="75-84">75-84</option>
                         <option value="85+">85+</option>
-                    </select>
+                    </select> -->
                     
                 </div>
             </div>
@@ -109,20 +121,18 @@
         var endYear;
         var ageRange;
 
-        var sharedStates=[];
+        var sharedStates = [];
 
         var placeholder = document.getElementById('myChart');
-        var myChart = placeholder.getContext('2d');
-
-        var statesChart;
-        var ageChart;
+        var covidChart = placeholder.getContext('2d');
+        var lineChart;
 
         const dropdown = document.getElementById('dropdown');
         var selectedAgeRange = null;
 
         $(document).ready(function(){
             var minDate = new Date(2019, 12, 31);
-            var maxDate = new Date(2023, 12, 31);
+            var maxDate = new Date(2022, 12, 31);
 
             $('#startDatePicker').datepicker({
                 format: "MM yyyy",
@@ -141,7 +151,7 @@
                                 // Reset the start date to the previous value
                                 $(this).val('');
                             } else {
-                                if (sharedStates.length >=1){ //state(s) selected
+                                if (sharedStates.length >= 1){ //state(s) selected
                                     fillChart();
                                 }
                             }
@@ -171,155 +181,190 @@
                             }
                         }
                     });
-            dropdown.addEventListener('change', function() {
-            // Get the selected age range or set to null if 'Select' option is chosen
-            selectedAgeRange = this.value !== 'Select' ? this.value : null;
-            // Update the chart if there are selected states
-            if (sharedStates.length >= 1) {
-                fillChart();
-            }
-        });
+            $('#ageRangePicker').change(function(){
+                // Update the age range variable
+                ageRange = $(this).val();
+                // Trigger chart update if states are already selected
+                if(sharedStates.length > 0){
+                    fillChart();
+                }
+            });
+        //     dropdown.addEventListener('change', function() {
+        //     // Get the selected age range or set to null if 'Select' option is chosen
+        //     selectedAgeRange = this.value !== 'Select' ? this.value : null;
+        //     // Update the chart if there are selected states
+        //     if (sharedStates.length >= 1) {
+        //         fillChart();
+        //     }
+        // });
     });
 
         //show chart
-        async function fillChart(){
-            try{
+        async function fillChart() {
+            try {
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
+                //console.log("date: "+startDate.getMonth());
 
-                startMonth = startDate.getMonth() + 1;
+                startMonth = startDate.getMonth() +1;
                 startYear = startDate.getFullYear();
-                endMonth = endDate.getMonth() + 1;
+                endMonth = endDate.getMonth()+1;
                 endYear = endDate.getFullYear();
+
+                console.log(startMonth, startYear, endMonth, endYear);
 
                 await fetchData();
 
-                if (!data || !data.rows) {
-                    console.error('No valid data received');
-                    return; // Exit if no data is available
-                }
+                var chartTitle = ageRange ? `Total Deaths for Age Range ${ageRange}` : 'Total Deaths by State';
 
-                placeholder.style.display = 'block'; //make chart visible if needed.
-
+                // Prepare the data for the chart
                 let stateDataset = {};
-                let ageDataset = {};
-
-                stateDataset["states"] = {
-                    label: "states",
-                    data: [],
-                    backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                    borderWidth: 2
-                };
-
-                ageDataset["ageRange"] = {
-                    label: "ageRange",
-                    data: [],
-                    backgroundColor: `rgba(0, 0, 0, 0)`, // Random color for each dataset
-                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Random color for each dataset
-                    borderWidth: 2
-                };
-
                 var uniqueMonths = [];
 
                 data.rows.forEach(row => {
-                    const month = row[0];
-                    const year = row[1];
-                    const states = row[2];
-                    const ageRange = row[3];
+                    const year = row[0];
+                    const month = row[1];
+                    const state = row[2];
+                    let ageRange;
+                    let totalDeaths;
+
+                    if (row.length === 5) {
+                        ageRange = row[3];
+                        totalDeaths = row[4];
+                    } else {
+                        totalDeaths = row[3];
+                    }
 
                     const monthyear = `${month}/${year}`;
                     if (!uniqueMonths.includes(monthyear)) {
                         uniqueMonths.push(monthyear);
                     }
 
-                    stateDataset["states"].data.push({
-                        x: `${month}/${year}`,
-                        y: states
-                    });
+                    if (!stateDataset[state]) {
+                        stateDataset[state] = {
+                            label: state,
+                            data: [],
+                            fill: false,
+                            borderColor: generateRandomColor(),
+                            borderWidth: 2
+                        };
+                    }
 
-                    ageDataset["ageRange"].data.push({
+                    stateDataset[state].data.push({
                         x: `${month}/${year}`,
-                        y: ageRange
+                        y: totalDeaths
                     });
                 });
 
                 const datasetsArray = Object.values(stateDataset);
-                const datasetsArray1 = Object.values(ageDataset);
-                
-                if (selectedAgeRange) {
-                    if (ageChart) {
-                        // Update chart data and options
-                        ageChart.data.labels = uniqueMonths;
-                        ageChart.data.datasets = datasetsArray1;
-                        ageChart.update();
-                    } else {
-                        // Create a new chart
-                        ageChart = new Chart(myChart, {
-                            type: 'line',
-                            data: {
-                                labels: uniqueMonths,
-                                datasets: datasetsArray1
-                            },
-                            options: {
-                                height: 700,
-                                width: 500,
-                                elements:{point:{radius: 1}}},  //remove data point circles
-                                scales: {
-                                xAxes: [{
-                                    scaleLabel: {
-                                        display: true,
-                                        labelString: 'Time' // Specify your x axis label here
-                                    }
-                                }],
-                                yAxes: [{
-                                    scaleLabel: {
-                                        display: true,
-                                        labelString: 'Total Deaths by State & Age' // Specify your y axis label here
-                                    }
-                                }]
-                            }
-                        });
-                    }
+
+                // If a chart instance already exists, destroy it
+                if (lineChart) {
+                    lineChart.data.labels = uniqueMonths;
+                    lineChart.data.datasets = datasetsArray;
+                    lineChart.update();
                 } else {
-                    if (statesChart) {
-                        // Update chart data and options
-                        statesChart.data.labels = uniqueMonths;
-                        statesChart.data.datasets = datasetsArray;
-                        statesChart.update();
-                    } else {
-                        // Create a new chart
-                        statesChart = new Chart(myChart, {
-                            type: 'line',
-                            data: {
-                                labels: uniqueMonths,
-                                datasets: datasetsArray
+                    //Create a new chart
+                    lineChart = new Chart(myChart, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueMonths,
+                            datasets: datasetsArray
+                        },
+                        options: {
+                            title: {
+                                display: true,
+                                text: chartTitle
                             },
-                            options: {
-                                height: 700,
-                                width: 500,
-                                elements:{point:{radius: 1}}},  //remove data point circles
-                                scales: {
+                            scales: {
                                 xAxes: [{
                                     scaleLabel: {
                                         display: true,
-                                        labelString: 'Time' // Specify your x axis label here
+                                        labelString: 'Time (Months)'
                                     }
                                 }],
                                 yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    },
                                     scaleLabel: {
                                         display: true,
-                                        labelString: 'Total Deaths by State' // Specify your y axis label here
+                                        labelString: 'Total COVID Deaths Reported'
                                     }
                                 }]
                             }
-                        });
-                    }
+                        }
+                    });
                 }
 
-            } catch (error) {
-                console.error('Error filling chart:', error);
-            }               
+            } catch(error) {
+                console.error('Error filling chart covid.html:', error);
+            }
+        }
+        
+        // function fillChart() {
+        //     if (!data || !data.rows) {
+        //         console.error('No data available to fill the chart.');
+        //         return; // Exit if no data is available
+        //     }
+
+        //     // Prepare the datasets for the chart
+        //     let datasets = data.rows.map((row, index) => {
+        //         return {
+        //             label: row.state, // Assuming each row has a 'state' property
+        //             data: row.dataPoints, // Assuming each row has a 'dataPoints' property, which is an array of numbers
+        //             fill: false,
+        //             borderColor: stateColors[row.state] || getRandomColor(), // Use a predefined color or a random color
+        //             lineTension: 0.1
+        //         };
+        //     });
+
+        //     let labels = data.labels; // Assuming there is a 'labels' property with the labels for the x-axis
+
+        //     // Check if the chart instance already exists
+        //     if (statesChart) {
+        //         // Update the existing chart
+        //         statesChart.data.labels = labels;
+        //         statesChart.data.datasets = datasets;
+        //         statesChart.update();
+        //     } else {
+        //         // Create a new chart
+        //         statesChart = new Chart(myChart, {
+        //             type: 'line',
+        //             data: {
+        //                 labels: labels,
+        //                 datasets: datasets
+        //             },
+        //             options: {
+        //                 responsive: true,
+        //                 title: {
+        //                     display: true,
+        //                     text: selectedAgeRange ? `COVID Deaths Age Range: ${selectedAgeRange}` : 'COVID Deaths by State'
+        //                 },
+        //                 scales: {
+        //                     yAxes: [{
+        //                         ticks: {
+        //                             beginAtZero: true,
+        //                             callback: function(value) { if (Number.isInteger(value)) { return value; } }, // Show only integer values
+        //                             stepSize: 1
+        //                         }
+        //                     }]
+        //                 },
+        //                 legend: {
+        //                     display: true
+        //                 }
+        //             }
+        //         });
+        //     }
+        // }
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
         }
         
         async function updateChart() {
@@ -331,43 +376,28 @@
                 placeholder.style.display = 'none';
             }
         }
-
+        
+        // Function to fetch data from the server and display it in the table
         async function fetchData() {
             try {
-                const response = await fetch('/data.json');
+                sharedString = encodeURIComponent(JSON.stringify(sharedStates));  // Encode the sharedStates for URL
+                selectedAgeRange = ageRange ? encodeURIComponent(ageRange) : 'null';  // Encode the age range or use 'null' string
+                const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${selectedAgeRange}`;
+
+                const response = await fetch(url);
                 if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                console.log(data);
-            } catch (error) {
+                const text = await response.text();
+                data = JSON.parse(text);
+
+            } catch(error) {
                 console.error('Error fetching data covid.html:', error);
+                // It's good practice to also display an error message in the UI
                 alert("Failed to fetch data: " + error.message);
             }
         }
-        
-        // Function to fetch data from the server and display it in the table
-        // async function fetchData() {
-        //     try {
-        //         sharedString = encodeURIComponent(JSON.stringify(sharedStates));  // Encode the sharedStates for URL
-        //         selectedAgeRange = selectedAgeRange ? encodeURIComponent(selectedAgeRange) : 'null';  // Encode the age range or use 'null' string
-        //         const url = `/covid?sm=${startMonth}&sy=${startYear}&em=${endMonth}&ey=${endYear}&states=${sharedString}&ageRange=${selectedAgeRange}`;
-
-        //         const response = await fetch(url);
-        //         if (!response.ok) {
-        //             throw new Error(`HTTP error! status: ${response.status}`);
-        //         }
-
-        //         const text = await response.text();
-        //         data = JSON.parse(text);
-
-        //     } catch(error) {
-        //         console.error('Error fetching data covid.html:', error);
-        //         // It's good practice to also display an error message in the UI
-        //         alert("Failed to fetch data: " + error.message);
-        //     }
-        // }
 
         function writeSharedStates(state){
             sharedStates.push(state);

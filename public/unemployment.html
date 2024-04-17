@@ -184,7 +184,6 @@
             try{
                 startDate = $('#startDatePicker').datepicker('getDate');
                 endDate = $('#endDatePicker').datepicker('getDate');
-                //console.log("date: "+startDate.getMonth());
 
                 startMonth = startDate.getMonth() +1;
                 startYear = startDate.getFullYear();
@@ -279,20 +278,21 @@
                         options: {
                             height: 700,
                             width: 500,
-                            elements:{point:{radius: 1}}},  //remove data point circles
+                            elements:{point:{radius: 1}},  //edit data point circles
                             scales: {
-                            xAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Time' // Specify your x axis label here
-                                }
-                            }],
-                            yAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Unemployment Rate' // Specify your y axis label here
-                                }
-                            }]
+                                xAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time' 
+                                    }
+                                }],
+                                yAxes: [{
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Unemployment Rate' 
+                                    }
+                                }]
+                            }
                         }
                     });
                 }
@@ -313,21 +313,22 @@
                         options: {
                             height: 700,
                             width: 500,
-                            elements:{point:{radius: 1}}},  //remove data point circles
+                            elements:{point:{radius: 1}},  //edit data point circles
                             scales: {
                                 xAxes: [{
                                     scaleLabel: {
                                         display: true,
-                                        labelString: 'Time' // Specify your x axis label here
+                                        labelString: 'Time' 
                                     }
                                 }],
                                 yAxes: [{
                                     scaleLabel: {
                                         display: true,
-                                        labelString: 'Deaths' // Specify your y axis label here
+                                        labelString: 'Deaths'
                                     }
                                 }]
                             }
+                        }
                     });
                 }
 

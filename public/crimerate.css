@@ -1,4 +1,4 @@
-a{
+{
     font-size: 40px;
 }
 #tabs-holder{
@@ -13,16 +13,16 @@ a{
 #option-holder{
     height:130px;
     width:100%;
-} 
+}
 #chart-holder{
-    float:center;
-    height:700px;
-    width: 50%;
+    margin-top: 200px;
+    width:700px;
+
 }
 #chart1-holder{
-    float:center;
-    height:700px;
-    width: 50%;
+
+    width:700px;
+
 }
 #startDate{
     float:left;
@@ -35,8 +35,19 @@ a{
     width:200px;
 }
 
-#conditionArea{
-    height: max-content;
-    width:90%;
+#conditionArea {
+    display: flex;
+    align-items: center;
     margin-top: 20px;
 }
+
+.dropdown {
+    margin-right: 20px;
+}
+
+#dropdown {
+    margin-left: 10px;
+    cursor: pointer;
+    z-index: 1;
+}
+
